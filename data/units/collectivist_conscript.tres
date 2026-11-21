@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"collectivist_conscript"
+display_name = "Conscript"
+faction = &"collectivists"
+max_health = 60
+move_speed = 4.0
+shape = 0
+size = Vector3(1.1, 1.8, 1.1)
+color = Color(0.72, 0.1, 0.1, 1)
