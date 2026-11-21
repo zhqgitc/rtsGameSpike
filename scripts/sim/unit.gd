@@ -1,15 +1,30 @@
 class_name Unit
 extends Node3D
-## A unit in the world. Holds its definition, follows move orders over the
-## navigation mesh (with avoidance) and builds placeholder visuals.
-## Movement runs in _physics_process (the fixed simulation tick).
+## A unit in the world: health, move/attack orders, automatic engagement and
+## retreat, pathing over the navigation mesh (with avoidance), plus placeholder
+## visuals. All behaviour runs in _physics_process (the fixed simulation tick).
+
+signal health_changed(current: int, maximum: int)
+signal died(unit: Unit)
+
+enum State { IDLE, MOVING, ATTACKING, RETREATING }
 
 const GROUP := &"units"
-## A unit that barely moves for this long while ordered to move gives up.
+## A unit that barely moves for this long while travelling gives up.
 const STALL_SECONDS := 1.0
 const STALL_SPEED_FRACTION := 0.2
+const SCAN_INTERVAL := 0.25
+const REPATH_INTERVAL := 0.3
+## An automatically acquired target is dropped beyond acquire_range * this.
+const LEASH_FACTOR := 1.6
+const RETREAT_DISTANCE := 24.0
+const FACE_TURN_RATE := 10.0
+
+static var _spawn_counter: int = 0
 
 var def: UnitDef
+var health: int = 0
+var state: State = State.IDLE
 var selected: bool = false:
 	set(value):
 		selected = value
@@ -18,40 +33,188 @@ var selected: bool = false:
 
 var _agent: NavigationAgent3D
 var _selection_ring: MeshInstance3D
-var _moving: bool = false
+var _target: Unit
+var _target_ordered: bool = false ## Player-ordered targets are never dropped automatically.
+var _path_active: bool = false
+var _dead: bool = false
+var _cooldown: float = 0.0
+var _scan_timer: float = 0.0
+var _repath_timer: float = 0.0
 var _stall_time: float = 0.0
 
 
 func setup(unit_def: UnitDef) -> void:
 	def = unit_def
+	health = def.max_health
 	name = "%s_%d" % [def.id, get_instance_id()]
+	# Deterministic stagger so units don't all scan in the same tick.
+	_scan_timer = (_spawn_counter % 5) * (SCAN_INTERVAL / 5.0)
+	_spawn_counter += 1
 	add_to_group(GROUP)
 	_build_placeholder_mesh()
 	_build_selection_ring()
 	_build_agent()
 
 
-## Order the unit to walk to a point on the ground.
+# --- Orders -----------------------------------------------------------------
+
+## Walk to a point on the ground, ignoring enemies on the way.
 func issue_move(target: Vector3) -> void:
-	_agent.target_position = target
-	_moving = true
-	_stall_time = 0.0
+	_target = null
+	_begin_travel(target, State.MOVING)
+
+
+## Attack a specific unit, chasing it as needed. Stays on it until it dies.
+func issue_attack(enemy: Unit) -> void:
+	if enemy == null or enemy == self or enemy._dead:
+		return
+	_begin_attack(enemy, true)
 
 
 func stop() -> void:
-	_moving = false
-	_agent.velocity = Vector3.ZERO
+	_target = null
+	_halt()
+	state = State.IDLE
+	_scan_timer = 0.0
 
 
 func is_moving() -> bool:
-	return _moving
+	return state == State.MOVING
 
 
-func _physics_process(_delta: float) -> void:
-	if not _moving:
+func is_dead() -> bool:
+	return _dead
+
+
+## True once health has fallen below the retreat threshold (never for units
+## that don't retreat).
+func is_demoralized() -> bool:
+	return def.retreat_health_fraction > 0.0 and health < def.max_health * def.retreat_health_fraction
+
+
+func take_damage(amount: int, attacker: Unit) -> void:
+	if _dead:
 		return
+	health = maxi(0, health - amount)
+	health_changed.emit(health, def.max_health)
+	if health <= 0:
+		_die()
+		return
+	# Hit while idle: hit back, or flee if too hurt to fight.
+	if state == State.IDLE and attacker != null and not attacker.is_dead():
+		if is_demoralized():
+			_begin_retreat(attacker)
+		else:
+			_begin_attack(attacker, false)
+
+
+# --- Simulation tick --------------------------------------------------------
+
+func _physics_process(delta: float) -> void:
+	if _dead:
+		return
+	_cooldown = maxf(0.0, _cooldown - delta)
+	match state:
+		State.IDLE:
+			_tick_idle(delta)
+		State.MOVING, State.RETREATING:
+			_tick_travel()
+		State.ATTACKING:
+			_tick_attack(delta)
+
+
+func _tick_idle(delta: float) -> void:
+	_scan_timer -= delta
+	if _scan_timer > 0.0:
+		return
+	_scan_timer = SCAN_INTERVAL
+	var enemy := _nearest_enemy(def.acquire_range)
+	if enemy == null:
+		return
+	if is_demoralized():
+		_begin_retreat(enemy)
+	else:
+		_begin_attack(enemy, false)
+
+
+func _tick_travel() -> void:
 	if _agent.is_navigation_finished():
+		_halt()
+		state = State.IDLE
+		_scan_timer = 0.0
+		return
+	_drive_path()
+
+
+func _tick_attack(delta: float) -> void:
+	if _target == null or not is_instance_valid(_target) or _target.is_dead():
 		stop()
+		return
+	var to_target := _target.global_position - global_position
+	to_target.y = 0.0
+	var dist := to_target.length()
+	if not _target_ordered:
+		if is_demoralized():
+			_begin_retreat(_target)
+			return
+		if dist > def.acquire_range * LEASH_FACTOR:
+			stop()
+			return
+	if dist > def.attack_range:
+		_repath_timer -= delta
+		if _repath_timer <= 0.0:
+			_repath_timer = REPATH_INTERVAL
+			_agent.target_position = _target.global_position
+		_path_active = true
+		_drive_path()
+		return
+	_halt()
+	_face(to_target, delta)
+	if _cooldown <= 0.0:
+		_fire()
+
+
+func _fire() -> void:
+	_cooldown = def.attack_cooldown
+	if def.projectile_speed > 0.0:
+		var shot := Projectile.new()
+		get_parent().add_child(shot)
+		shot.launch(global_position + Vector3.UP * 1.2, _target, def.attack_damage, def.projectile_speed, self)
+	else:
+		_target.take_damage(def.attack_damage, self)
+
+
+func _begin_attack(enemy: Unit, ordered: bool) -> void:
+	_target = enemy
+	_target_ordered = ordered
+	_repath_timer = 0.0
+	_cooldown = maxf(_cooldown, 0.0)
+	state = State.ATTACKING
+
+
+func _begin_retreat(from: Unit) -> void:
+	var away := global_position - from.global_position
+	away.y = 0.0
+	away = away.normalized() if away.length() > 0.01 else Vector3.BACK
+	_target = null
+	_begin_travel(global_position + away * RETREAT_DISTANCE, State.RETREATING)
+
+
+func _begin_travel(destination: Vector3, travel_state: State) -> void:
+	_agent.target_position = destination
+	_path_active = true
+	_stall_time = 0.0
+	state = travel_state
+
+
+func _halt() -> void:
+	_path_active = false
+	_agent.velocity = Vector3.ZERO
+
+
+func _drive_path() -> void:
+	if _agent.is_navigation_finished():
+		_agent.velocity = Vector3.ZERO
 		return
 	var to_next := _agent.get_next_path_position() - global_position
 	to_next.y = 0.0
@@ -60,7 +223,7 @@ func _physics_process(_delta: float) -> void:
 
 
 func _on_velocity_computed(safe_velocity: Vector3) -> void:
-	if not _moving:
+	if not _path_active or _dead:
 		return
 	var delta := get_physics_process_delta_time()
 	var flat := Vector3(safe_velocity.x, 0.0, safe_velocity.z)
@@ -68,14 +231,47 @@ func _on_velocity_computed(safe_velocity: Vector3) -> void:
 	var next := NavigationServer3D.map_get_closest_point(_agent.get_navigation_map(), global_position + flat * delta)
 	global_position = Vector3(next.x, 0.0, next.z)
 	if flat.length() > 0.1:
-		rotation.y = lerp_angle(rotation.y, atan2(-flat.x, -flat.z), minf(1.0, delta * 10.0))
-	if flat.length() < def.move_speed * STALL_SPEED_FRACTION:
-		_stall_time += delta
-		if _stall_time > STALL_SECONDS:
-			stop()
-	else:
-		_stall_time = 0.0
+		_face(flat, delta)
+	if state == State.MOVING or state == State.RETREATING:
+		if flat.length() < def.move_speed * STALL_SPEED_FRACTION:
+			_stall_time += delta
+			if _stall_time > STALL_SECONDS:
+				_halt()
+				state = State.IDLE
+		else:
+			_stall_time = 0.0
 
+
+func _face(direction: Vector3, delta: float) -> void:
+	if direction.length() < 0.01:
+		return
+	rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, delta * FACE_TURN_RATE))
+
+
+func _nearest_enemy(max_range: float) -> Unit:
+	var best: Unit = null
+	var best_dist := max_range * max_range
+	for node in get_tree().get_nodes_in_group(GROUP):
+		var other := node as Unit
+		if other == null or other == self or other._dead or other.def.faction == def.faction:
+			continue
+		var d := global_position.distance_squared_to(other.global_position)
+		if d < best_dist:
+			best_dist = d
+			best = other
+	return best
+
+
+func _die() -> void:
+	_dead = true
+	_path_active = false
+	remove_from_group(GROUP)
+	selected = false
+	died.emit(self)
+	queue_free()
+
+
+# --- Placeholder visuals ----------------------------------------------------
 
 func _build_agent() -> void:
 	_agent = NavigationAgent3D.new()

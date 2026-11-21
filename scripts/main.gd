@@ -21,3 +21,6 @@ func _spawn(def: UnitDef, pos: Vector3) -> void:
 	_units.add_child(unit)
 	unit.setup(def)
 	unit.position = pos
+	var bar := HealthBar.new()
+	unit.add_child(bar)
+	bar.attach(unit)
