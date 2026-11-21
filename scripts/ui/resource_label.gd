@@ -2,10 +2,10 @@ class_name ResourceLabel
 extends Label
 ## Temporary readout of each faction's stockpile, until the real HUD (M5).
 
-const FACTIONS: Array[StringName] = [&"collectivists", &"libertarians"]
-const RESOURCES: Array[StringName] = [&"materials"]
+const REFRESH_INTERVAL := 0.4
 
 var _economy: Economy
+var _since_refresh: float = 0.0
 
 
 func _ready() -> void:
@@ -13,17 +13,22 @@ func _ready() -> void:
 	add_theme_color_override("font_outline_color", Color.BLACK)
 	add_theme_constant_override("outline_size", 6)
 	_economy = get_tree().get_first_node_in_group(Economy.GROUP) as Economy
-	if _economy:
-		_economy.changed.connect(func(_f: StringName, _r: StringName, _a: int) -> void: _refresh())
 	_refresh()
 
 
+func _process(delta: float) -> void:
+	_since_refresh += delta
+	if _since_refresh >= REFRESH_INTERVAL:
+		_since_refresh = 0.0
+		_refresh()
+
+
 func _refresh() -> void:
-	var lines: Array[String] = []
-	for faction in FACTIONS:
-		var parts: Array[String] = []
-		for resource in RESOURCES:
-			var value := _economy.amount(faction, resource) if _economy else 0
-			parts.append("%s %d" % [String(resource).capitalize(), value])
-		lines.append("%s: %s" % [String(faction).capitalize(), ", ".join(parts)])
-	text = "\n".join(lines)
+	if _economy == null:
+		return
+	var c := &"collectivists"
+	var l := &"libertarians"
+	text = "Collectivists: Materials %d  |  Manpower %d/%d\nLibertarians: Materials %d  |  Capital %d" % [
+		_economy.amount(c, &"materials"), _economy.pop_used(c), _economy.pop_cap(c),
+		_economy.amount(l, &"materials"), _economy.amount(l, &"capital"),
+	]

@@ -1,6 +1,9 @@
-[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UnitDef" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="2"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_market.tres" id="3"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_militia.tres" id="4"]
 
 [resource]
 script = ExtResource("1")
@@ -14,6 +17,8 @@ attack_damage = 0
 acquire_range = 0.0
 carry_capacity = 14
 gather_rate = 4.0
+builds = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4")])
+build_speed = 1.0
 shape = 1
 size = Vector3(0.9, 1.7, 0.9)
 color = Color(0.3, 0.65, 0.45, 1)

@@ -27,6 +27,26 @@ func add(faction: StringName, resource: StringName, value: int) -> void:
 	changed.emit(faction, resource, _stock[faction][resource])
 
 
+## Population cap from finished buildings (Manpower).
+func pop_cap(faction: StringName) -> int:
+	var total := 0
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building != null and building.complete and building.def.faction == faction:
+			total += building.def.pop_provided
+	return total
+
+
+## Population currently occupied by living units.
+func pop_used(faction: StringName) -> int:
+	var total := 0
+	for node in get_tree().get_nodes_in_group(Unit.GROUP):
+		var unit := node as Unit
+		if unit != null and unit.def.faction == faction:
+			total += unit.def.pop_cost
+	return total
+
+
 func can_afford(faction: StringName, costs: Dictionary) -> bool:
 	for resource in costs:
 		if amount(faction, resource) < costs[resource]:

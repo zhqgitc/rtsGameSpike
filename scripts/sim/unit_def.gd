@@ -32,6 +32,16 @@ enum Shape { BOX, CAPSULE }
 ## Resource units gathered per second while at a deposit.
 @export var gather_rate: float = 5.0
 
+@export_group("Building")
+## Buildings this unit can construct, in hotkey order (1, 2, ...). Empty = cannot build.
+@export var builds: Array[BuildingDef] = []
+## Build-seconds of progress contributed per second.
+@export var build_speed: float = 1.0
+
+@export_group("Population")
+## Manpower slots this unit occupies (Collectivists only; 0 = none).
+@export var pop_cost: int = 0
+
 @export_group("Placeholder visuals")
 ## Until real models are assigned.
 @export var shape: Shape = Shape.BOX
@@ -45,3 +55,7 @@ func can_attack() -> bool:
 
 func can_harvest() -> bool:
 	return carry_capacity > 0
+
+
+func can_build() -> bool:
+	return not builds.is_empty()

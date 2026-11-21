@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"libertarian_market"
+display_name = "Market"
+faction = &"libertarians"
+max_health = 250
+costs = {
+&"materials": 120
+}
+build_time = 30.0
+income = {
+&"capital": 1.0
+}
+size = Vector3(3.5, 2.2, 3.5)
+color = Color(0.8, 0.6, 0.35, 1)
+accent_color = Color(0.95, 0.75, 0.1, 1)

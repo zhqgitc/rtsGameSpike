@@ -9,6 +9,8 @@ const COLLECTIVIST_HQ := preload("res://data/buildings/collectivist_hq.tres")
 const LIBERTARIAN_HQ := preload("res://data/buildings/libertarian_hq.tres")
 
 const DEPOSIT_AMOUNT := 600
+const STARTING_MATERIALS := 200
+const LIBERTARIAN_STARTING_CAPITAL := 50
 
 @onready var _terrain: Terrain = $Terrain
 @onready var _units: Node3D = $Units
@@ -17,6 +19,10 @@ const DEPOSIT_AMOUNT := 600
 
 
 func _ready() -> void:
+	var economy: Economy = $Economy
+	economy.add(&"collectivists", &"materials", STARTING_MATERIALS)
+	economy.add(&"libertarians", &"materials", STARTING_MATERIALS)
+	economy.add(&"libertarians", &"capital", LIBERTARIAN_STARTING_CAPITAL)
 	_setup_collectivists()
 	_setup_libertarians()
 	# Buildings and deposits are new obstacles: bake them into the navmesh.

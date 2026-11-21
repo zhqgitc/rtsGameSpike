@@ -45,6 +45,17 @@ static func harvest_group(units: Array[Unit], node: ResourceNode) -> void:
 	move_group(others, node.global_position)
 
 
+## Send every worker in the group that can build this site to work on it.
+## Returns how many accepted.
+static func build_group(units: Array[Unit], site: Building) -> int:
+	var count := 0
+	for unit in units:
+		if unit.def.builds.has(site.def):
+			unit.issue_build(site)
+			count += 1
+	return count
+
+
 ## Order every enemy of the target in the group to attack it. Units of the
 ## target's own faction in the group are left alone.
 static func attack_group(units: Array[Unit], target: Unit) -> void:
