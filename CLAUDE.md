@@ -8,10 +8,12 @@ RTS game spike (C&C / StarCraft / Warcraft style). See `PLAN.md` for scope and m
 - Headless smoke test: `Godot_v4.7.2-stable_win64_console.exe --headless --path . --quit`
 
 ## Git workflow
-- Branches: `develop` (integration; there is no `master`), `feature/<name>` or `session/<date>-<topic>` (all work)
+- Branches: `develop` (integration; `master` does not exist yet), `feature/<name>` or `session/<date>-<topic>` (all work)
 - **Always create a feature or session branch before changing anything, and always branch from `develop`.**
 - **Commit only to feature/session branches.** Never commit to `develop` unless the owner explicitly says so.
-- Never merge into `develop`, push, or open PRs unless asked.
+- **Never merge a feature branch into `develop` directly. Integration happens only through a pull request (base `develop`), which the owner reviews and merges.**
+- Don't push or open PRs without the owner asking (or confirming); opening a PR for finished work is the expected path to `develop`.
+- A `master` branch will be created later, on the owner's say-so.
 - Commit messages: short imperative subject, body explains why. End with the attribution line configured for the session.
 - One logical change per commit; don't commit `.godot/` or generated files.
 
