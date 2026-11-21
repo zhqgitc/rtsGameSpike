@@ -23,6 +23,7 @@ func _ready() -> void:
 	economy.add(&"collectivists", &"materials", STARTING_MATERIALS)
 	economy.add(&"libertarians", &"materials", STARTING_MATERIALS)
 	economy.add(&"libertarians", &"capital", LIBERTARIAN_STARTING_CAPITAL)
+	_buildings.child_entered_tree.connect(_on_building_added)
 	_setup_collectivists()
 	_setup_libertarians()
 	# Buildings and deposits are new obstacles: bake them into the navmesh.
@@ -60,6 +61,12 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	var bar := HealthBar.new()
 	unit.add_child(bar)
 	bar.attach(unit)
+
+
+func _on_building_added(node: Node) -> void:
+	var building := node as Building
+	if building != null:
+		building.unit_produced.connect(_spawn_unit)
 
 
 func _spawn_building(def: BuildingDef, pos: Vector3) -> void:

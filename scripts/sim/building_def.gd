@@ -26,6 +26,19 @@ extends Resource
 ## Resource id -> amount per second produced once finished.
 @export var income: Dictionary = {}
 
+@export_group("Production")
+## UnitDef resources this building trains, in hotkey order (1, 2, ...).
+## Deliberately typed as plain Resource: UnitDef already refers to BuildingDef,
+## and two scripts naming each other's types leak at engine shutdown.
+@export var trains: Array[Resource] = []
+@export var queue_slots: int = 5
+## The Plan (Collectivists): a batch of this many units at once. 0 = no batches.
+@export var plan_batch_size: int = 0
+## Batch cost relative to buying the same number one by one.
+@export var plan_cost_factor: float = 0.75
+## Batch time relative to training the same number one by one.
+@export var plan_time_factor: float = 1.2
+
 @export_group("Placeholder visuals")
 @export var size: Vector3 = Vector3(6, 4, 6)
 @export var color: Color = Color(0.5, 0.5, 0.52)

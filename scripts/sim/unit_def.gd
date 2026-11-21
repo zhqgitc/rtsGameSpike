@@ -42,6 +42,15 @@ enum Shape { BOX, CAPSULE }
 ## Manpower slots this unit occupies (Collectivists only; 0 = none).
 @export var pop_cost: int = 0
 
+@export_group("Training")
+## Resource id -> amount, paid when queued at a production building.
+@export var train_costs: Dictionary = {}
+## Seconds to train one unit.
+@export var train_time: float = 10.0
+## A finished friendly building of this type is needed before training
+## (Libertarian "education": the Apprentice Workshop). Null = none.
+@export var requires: BuildingDef
+
 @export_group("Placeholder visuals")
 ## Until real models are assigned.
 @export var shape: Shape = Shape.BOX

@@ -115,10 +115,9 @@ func _try_place() -> void:
 
 
 func _validate() -> String:
-	for resource in _def.costs:
-		var have := _economy.amount(_def.faction, resource)
-		if have < _def.costs[resource]:
-			return "Not enough %s (need %d, have %d)" % [String(resource).capitalize(), _def.costs[resource], have]
+	var shortfall := _economy.shortfall(_def.faction, _def.costs)
+	if not shortfall.is_empty():
+		return shortfall
 	return Placement.check(get_tree(), _def, _position)
 
 

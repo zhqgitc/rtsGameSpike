@@ -17,6 +17,10 @@ projectile_speed = 0.0
 acquire_range = 10.0
 retreat_health_fraction = 0.0
 pop_cost = 1
+train_costs = {
+&"materials": 30
+}
+train_time = 6.0
 shape = 0
 size = Vector3(1.1, 1.8, 1.1)
 color = Color(0.72, 0.1, 0.1, 1)

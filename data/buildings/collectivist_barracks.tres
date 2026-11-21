@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BuildingDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/units/collectivist_conscript.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -13,6 +14,10 @@ costs = {
 }
 build_time = 20.0
 max_distance_from_hq = 30.0
+trains = Array[Resource]([ExtResource("3")])
+plan_batch_size = 5
+plan_cost_factor = 0.75
+plan_time_factor = 1.2
 size = Vector3(7, 4, 7)
 color = Color(0.38, 0.38, 0.4, 1)
 accent_color = Color(0.72, 0.1, 0.1, 1)

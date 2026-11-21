@@ -58,3 +58,10 @@ Central plan vs. spontaneous order. Mass vs. individual. One big target vs. many
 | Production building | Conscription Office | Militia Hall |
 
 Numbers are placeholders in `data/`: Collectivist HQ provides 24 Manpower so the starting army fits (the draft said 10); Libertarians start with 50 Capital; both start with 200 Materials.
+
+## Production and education (confirmed by owner, M4c)
+- **Queue** is limited to 5 slots per building. Costs are paid when queued; Manpower is reserved for queued units.
+- **Collectivists:** Plan batches (5 Conscripts for 25% less Materials, 20% slower than training 5 one by one, all delivered together).
+- **Libertarians, education:** the Militia Hall trains cheap, quick but weaker **Volunteers**. The better **Freeholders** require a finished **Apprentice Workshop** (private, hands-on learning).
+- **Universities are reserved for the Collectivists** in this scenario (state institutions), so Libertarian education buildings must never be called universities.
+- Units appear in front of the building; rally points may come later.
