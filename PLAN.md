@@ -60,3 +60,5 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 ## Backlog
 - Ctrl+left-click selects all units of the same type (owner request, after M2)
 - [x] Milestone 3 (branch feature/m3-combat): right-click attack + auto-acquire, melee-ish Conscripts vs ranged Freeholders with projectiles, health bars, Collectivists never retreat, Freeholders retreat below 30% health
+
+- Balance pass later: owner feels Libertarians are a bit too strong; they should need specific strategies against Collectivists, who attack in higher numbers (revisit once full mechanics, graphics and story are in)
