@@ -34,6 +34,14 @@ static func move_group(units: Array[Unit], target: Vector3) -> void:
 		remaining.remove_at(best)
 
 
+## Order every enemy of the target in the group to attack it. Units of the
+## target's own faction in the group are left alone.
+static func attack_group(units: Array[Unit], target: Unit) -> void:
+	for unit in units:
+		if unit.def.faction != target.def.faction:
+			unit.issue_attack(target)
+
+
 ## Rectangular grid centred on the target, facing the direction of travel.
 ## Slots are ordered front row first.
 static func _formation_slots(center: Vector3, count: int, spacing: float, forward: Vector3) -> Array[Vector3]:

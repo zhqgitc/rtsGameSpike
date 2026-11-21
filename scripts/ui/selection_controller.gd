@@ -49,7 +49,8 @@ func _drag_rect(current: Vector2) -> Rect2:
 	return Rect2(_press_pos, Vector2.ZERO).expand(current)
 
 
-func _select_at_point(point: Vector2, additive: bool) -> void:
+## The unit under a screen point (nearest to the camera if several overlap).
+func _unit_at_point(point: Vector2) -> Unit:
 	var cam := get_viewport().get_camera_3d()
 	var best: Unit = null
 	var best_dist := INF
@@ -62,6 +63,11 @@ func _select_at_point(point: Vector2, additive: bool) -> void:
 			if dist < best_dist:
 				best_dist = dist
 				best = unit
+	return best
+
+
+func _select_at_point(point: Vector2, additive: bool) -> void:
+	var best := _unit_at_point(point)
 	var picked: Array[Unit] = []
 	if best:
 		picked.append(best)
@@ -96,12 +102,24 @@ func _order_move(screen_pos: Vector2) -> void:
 	_prune_selection()
 	if selected.is_empty():
 		return
+	# Right-click on an enemy attacks it; anywhere else moves.
+	var clicked := _unit_at_point(screen_pos)
+	if clicked != null and _selection_has_enemy_of(clicked):
+		Orders.attack_group(selected, clicked)
+		return
 	var cam := get_viewport().get_camera_3d()
 	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(
 			cam.project_ray_origin(screen_pos), cam.project_ray_normal(screen_pos))
 	if hit == null:
 		return
 	Orders.move_group(selected, hit)
+
+
+func _selection_has_enemy_of(target: Unit) -> bool:
+	for unit in selected:
+		if unit.def.faction != target.def.faction:
+			return true
+	return false
 
 
 func _prune_selection() -> void:
