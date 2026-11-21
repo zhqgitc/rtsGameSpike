@@ -20,7 +20,7 @@ RTS game spike (C&C / StarCraft / Warcraft style). See `PLAN.md` for scope and m
 ## Architecture rules
 - Game logic (units, orders, combat, economy, fog) runs on a fixed tick, separate from rendering and UI. This keeps replays and lockstep multiplayer possible later.
 - Content is data-driven: units and buildings live in resource files under `data/`. Adding a unit should be a data edit, not a code change.
-- Gameplay code lives in `scripts/sim/`, UI in `scripts/ui/`, AI in `scripts/ai/`. Sim code must not depend on UI code.
+- Gameplay code lives in `scripts/sim/`, UI and camera in `scripts/ui/`, AI in `scripts/ai/`, world/map presentation in `scripts/world/`. Sim code must not depend on UI code.
 - Art sits behind an asset interface (model/texture referenced from data), so placeholders can be swapped for real assets without code changes.
 
 ## Code style

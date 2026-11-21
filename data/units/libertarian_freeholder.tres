@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"libertarian_freeholder"
+display_name = "Freeholder"
+faction = &"libertarians"
+max_health = 120
+move_speed = 5.0
+shape = 1
+size = Vector3(0.9, 1.8, 0.9)
+color = Color(0.95, 0.75, 0.1, 1)
