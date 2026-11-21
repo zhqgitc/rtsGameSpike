@@ -20,6 +20,8 @@ var _session: Session
 
 func _ready() -> void:
 	_session = Session.find(get_tree())
+	# Right clicks come from the camera, which also uses right-drag to pan.
+	(get_node("../RTSCamera") as RTSCamera).right_clicked.connect(_order_move)
 	var layer := CanvasLayer.new()
 	_overlay = SelectionBoxOverlay.new()
 	layer.add_child(_overlay)
@@ -40,8 +42,6 @@ func _unhandled_input(event: InputEvent) -> void:
 					_select_in_rect(_drag_rect(event.position), event.shift_pressed)
 				else:
 					_select_at_point(event.position, event.shift_pressed)
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_order_move(event.position)
 	elif event is InputEventMouseMotion and _pressing:
 		if not _dragging and event.position.distance_to(_press_pos) > DRAG_THRESHOLD:
 			_dragging = true
@@ -146,6 +146,10 @@ func _apply_selection(picked: Array[Unit], additive: bool) -> void:
 
 
 func _order_move(screen_pos: Vector2) -> void:
+	# While placing a building, right click only cancels the placement.
+	var placer := get_node_or_null("../BuildPlacer") as BuildPlacer
+	if placer != null and placer.is_placing():
+		return
 	_prune_selection()
 	if selected.is_empty():
 		return
