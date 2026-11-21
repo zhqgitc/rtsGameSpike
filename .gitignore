@@ -1,0 +1,8 @@
+# Godot
+.godot/
+*.translation
+export_presets.cfg
+# OS / editor
+Thumbs.db
+.vs/
+.vscode/
