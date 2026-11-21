@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/rts_camera.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/selection_controller.gd" id="4"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 
@@ -25,8 +26,11 @@ environment = SubResource("env")
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 20, 0)
 shadow_enabled = true
 
-[node name="Terrain" type="Node3D" parent="."]
+[node name="Terrain" type="NavigationRegion3D" parent="."]
 script = ExtResource("2")
+
+[node name="SelectionController" type="Node" parent="."]
+script = ExtResource("4")
 
 [node name="Units" type="Node3D" parent="."]
 
