@@ -28,6 +28,12 @@ func _process(delta: float) -> void:
 		position.z = clampf(position.z + dir.y * step, -bounds.y, bounds.y)
 
 
+## Jump the view to centre on a ground point.
+func focus_on(point: Vector3) -> void:
+	position.x = clampf(point.x, -bounds.x, bounds.x)
+	position.z = clampf(point.z, -bounds.y, bounds.y)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
