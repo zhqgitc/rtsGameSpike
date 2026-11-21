@@ -29,3 +29,9 @@ Central plan vs. spontaneous order. Mass vs. individual. One big target vs. many
 ## Open questions
 - Unit roster for the spike (suggest 3 per side: basic infantry, support/harvester, vehicle)
 - Resource model: one shared resource or faction-specific flavor of the same resource
+
+## Economy (decided during M4)
+- **Materials:** common resource, mined from deposits by harvesters (Laborers / Prospectors) and delivered to the HQ.
+- **Second resource:** faction-specific, to be designed in M4b. Direction: Collectivists get a manpower/housing-style cap, Libertarians get a capital/trade-style income.
+- **Construction:** Warcraft style, workers walk to the site and build.
+- **Names so far:** Collectivist HQ = Central Committee Block, worker = Laborer. Libertarian HQ = Trading Post, worker = Prospector.

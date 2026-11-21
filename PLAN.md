@@ -62,3 +62,4 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 - [x] Milestone 3 (branch feature/m3-combat): right-click attack + auto-acquire, melee-ish Conscripts vs ranged Freeholders with projectiles, health bars, Collectivists never retreat, Freeholders retreat below 30% health
 
 - Balance pass later: owner feels Libertarians are a bit too strong; they should need specific strategies against Collectivists, who attack in higher numbers (revisit once full mechanics, graphics and story are in)
+- [x] Milestone 4a (branch feature/m4-economy): deposits, harvesters, HQ drop-off, temporary resource readout. M4b: worker-built buildings + faction-specific second resource. M4c: production queues.

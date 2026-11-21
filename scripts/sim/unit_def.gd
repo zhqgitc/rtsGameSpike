@@ -26,8 +26,22 @@ enum Shape { BOX, CAPSULE }
 ## 0 = never retreats (Collectivist obedience).
 @export_range(0.0, 1.0) var retreat_health_fraction: float = 0.0
 
+@export_group("Harvesting")
+## 0 = cannot harvest.
+@export var carry_capacity: int = 0
+## Resource units gathered per second while at a deposit.
+@export var gather_rate: float = 5.0
+
 @export_group("Placeholder visuals")
 ## Until real models are assigned.
 @export var shape: Shape = Shape.BOX
 @export var size: Vector3 = Vector3(1, 1, 1)
 @export var color: Color = Color.WHITE
+
+
+func can_attack() -> bool:
+	return attack_damage > 0
+
+
+func can_harvest() -> bool:
+	return carry_capacity > 0

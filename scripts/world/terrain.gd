@@ -3,6 +3,9 @@ extends NavigationRegion3D
 ## Placeholder map: gridded ground plane, a few obstacles, and the navigation
 ## mesh baked from them at startup.
 
+## Static bodies in this group (anywhere in the tree) are baked into the navmesh.
+const NAV_SOURCE_GROUP := &"nav_source"
+
 @export var map_size: Vector2 = Vector2(128, 128)
 @export var tile_size: float = 4.0
 ## Temporary hard-coded obstacles as Rect2(x, z, width, depth) on the ground,
@@ -13,6 +16,8 @@ extends NavigationRegion3D
 	Rect2(12, -20, 6, 10),
 ]
 @export var obstacle_height: float = 4.0
+
+var _rebake_pending: bool = false
 
 
 func _ready() -> void:
@@ -39,6 +44,7 @@ func _ready() -> void:
 		block_box.size = box.size
 		block_shape.shape = block_box
 		block_body.add_child(block_shape)
+		block_body.add_to_group(NAV_SOURCE_GROUP)
 		block_body.position = block.position
 		add_child(block_body)
 
@@ -49,18 +55,37 @@ func _ready() -> void:
 	shape.shape = floor_box
 	shape.position.y = -0.5
 	body.add_child(shape)
+	body.add_to_group(NAV_SOURCE_GROUP)
 	add_child(body)
 
-	_bake_navigation()
+	_setup_navigation()
+	bake_finished.connect(_on_bake_finished)
+	bake_navigation_mesh(false)
 
 
-func _bake_navigation() -> void:
+## Re-bake after obstacles were added or removed (buildings, depleted deposits).
+## Runs on a thread; a request during a running bake is queued.
+func rebake() -> void:
+	if is_baking():
+		_rebake_pending = true
+		return
+	bake_navigation_mesh(true)
+
+
+func _on_bake_finished() -> void:
+	if _rebake_pending:
+		_rebake_pending = false
+		bake_navigation_mesh(true)
+
+
+func _setup_navigation() -> void:
 	var nav := NavigationMesh.new()
 	# Bake from collision shapes: parsing visual meshes at runtime stalls the GPU.
 	nav.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	nav.geometry_source_group_name = NAV_SOURCE_GROUP
 	nav.agent_radius = 0.5
 	navigation_mesh = nav
-	bake_navigation_mesh(false)
 
 
 func _make_grid_material() -> StandardMaterial3D:

@@ -112,7 +112,24 @@ func _order_move(screen_pos: Vector2) -> void:
 			cam.project_ray_origin(screen_pos), cam.project_ray_normal(screen_pos))
 	if hit == null:
 		return
+	var deposit := _resource_node_at(hit)
+	if deposit != null:
+		Orders.harvest_group(selected, deposit)
+		return
 	Orders.move_group(selected, hit)
+
+
+## The resource deposit whose footprint contains a ground point, if any.
+func _resource_node_at(ground_point: Vector3) -> ResourceNode:
+	for candidate in get_tree().get_nodes_in_group(ResourceNode.GROUP):
+		var node := candidate as ResourceNode
+		if node == null:
+			continue
+		var offset := ground_point - node.global_position
+		offset.y = 0.0
+		if offset.length() <= node.radius * 1.45 + 0.5:
+			return node
+	return null
 
 
 func _selection_has_enemy_of(target: Unit) -> bool:

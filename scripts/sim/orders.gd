@@ -34,6 +34,17 @@ static func move_group(units: Array[Unit], target: Vector3) -> void:
 		remaining.remove_at(best)
 
 
+## Harvesters in the group gather from the deposit; everyone else just moves there.
+static func harvest_group(units: Array[Unit], node: ResourceNode) -> void:
+	var others: Array[Unit] = []
+	for unit in units:
+		if unit.def.can_harvest():
+			unit.issue_harvest(node)
+		else:
+			others.append(unit)
+	move_group(others, node.global_position)
+
+
 ## Order every enemy of the target in the group to attack it. Units of the
 ## target's own faction in the group are left alone.
 static func attack_group(units: Array[Unit], target: Unit) -> void:

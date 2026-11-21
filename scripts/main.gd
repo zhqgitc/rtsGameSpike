@@ -1,22 +1,52 @@
 extends Node3D
-## Spike entry point: spawns a few placeholder units for each faction.
+## Spike entry point: lays out both bases, deposits and starting units.
 
 const COLLECTIVIST_UNIT := preload("res://data/units/collectivist_conscript.tres")
 const LIBERTARIAN_UNIT := preload("res://data/units/libertarian_freeholder.tres")
+const COLLECTIVIST_WORKER := preload("res://data/units/collectivist_laborer.tres")
+const LIBERTARIAN_WORKER := preload("res://data/units/libertarian_prospector.tres")
+const COLLECTIVIST_HQ := preload("res://data/buildings/collectivist_hq.tres")
+const LIBERTARIAN_HQ := preload("res://data/buildings/libertarian_hq.tres")
 
+const DEPOSIT_AMOUNT := 600
+
+@onready var _terrain: Terrain = $Terrain
 @onready var _units: Node3D = $Units
+@onready var _buildings: Node3D = $Buildings
+@onready var _deposits: Node3D = $Deposits
 
 
 func _ready() -> void:
-	# Collectivists: dense formation. Libertarians: loose, spread out.
+	_setup_collectivists()
+	_setup_libertarians()
+	# Buildings and deposits are new obstacles: bake them into the navmesh.
+	_terrain.rebake()
+
+
+func _setup_collectivists() -> void:
+	_spawn_building(COLLECTIVIST_HQ, Vector3(-42, 0, 0))
+	_spawn_deposit(Vector3(-34, 0, -14))
+	_spawn_deposit(Vector3(-34, 0, 14))
+	for i in 3:
+		_spawn_unit(COLLECTIVIST_WORKER, Vector3(-34.0, 0.0, -3.0 + i * 3.0))
+	# Dense formation: the mass.
 	for row in 3:
 		for col in 6:
-			_spawn(COLLECTIVIST_UNIT, Vector3(-30.0 + col * 1.6, 0.0, -6.0 + row * 1.6))
+			_spawn_unit(COLLECTIVIST_UNIT, Vector3(-30.0 + col * 1.6, 0.0, -6.0 + row * 1.6))
+
+
+func _setup_libertarians() -> void:
+	_spawn_building(LIBERTARIAN_HQ, Vector3(44, 0, 0))
+	_spawn_deposit(Vector3(36, 0, -13))
+	_spawn_deposit(Vector3(36, 0, 13))
+	for i in 3:
+		_spawn_unit(LIBERTARIAN_WORKER, Vector3(37.0, 0.0, -4.0 + i * 4.0))
+	# Loose spread: the individuals.
 	for i in 5:
-		_spawn(LIBERTARIAN_UNIT, Vector3(24.0 + (i % 3) * 4.2, 0.0, -5.0 + i * 3.3))
+		_spawn_unit(LIBERTARIAN_UNIT, Vector3(24.0 + (i % 3) * 4.2, 0.0, -5.0 + i * 3.3))
 
 
-func _spawn(def: UnitDef, pos: Vector3) -> void:
+func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	var unit := Unit.new()
 	_units.add_child(unit)
 	unit.setup(def)
@@ -24,3 +54,24 @@ func _spawn(def: UnitDef, pos: Vector3) -> void:
 	var bar := HealthBar.new()
 	unit.add_child(bar)
 	bar.attach(unit)
+
+
+func _spawn_building(def: BuildingDef, pos: Vector3) -> void:
+	var building := Building.new()
+	_buildings.add_child(building)
+	building.setup(def)
+	building.position = pos
+
+
+func _spawn_deposit(pos: Vector3) -> void:
+	var deposit := ResourceNode.new()
+	deposit.amount = DEPOSIT_AMOUNT
+	_deposits.add_child(deposit)
+	deposit.position = pos
+	deposit.depleted.connect(_on_deposit_depleted)
+
+
+func _on_deposit_depleted() -> void:
+	# The deposit is freed at the end of the frame; bake once it is gone.
+	await get_tree().process_frame
+	_terrain.rebake()
