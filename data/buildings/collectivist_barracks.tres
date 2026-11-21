@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"collectivist_barracks"
+display_name = "Conscription Office"
+faction = &"collectivists"
+max_health = 700
+costs = {
+&"materials": 100
+}
+build_time = 20.0
+max_distance_from_hq = 30.0
+size = Vector3(7, 4, 7)
+color = Color(0.38, 0.38, 0.4, 1)
+accent_color = Color(0.72, 0.1, 0.1, 1)

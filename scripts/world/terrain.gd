@@ -5,6 +5,7 @@ extends NavigationRegion3D
 
 ## Static bodies in this group (anywhere in the tree) are baked into the navmesh.
 const NAV_SOURCE_GROUP := &"nav_source"
+const GROUP := &"terrain"
 
 @export var map_size: Vector2 = Vector2(128, 128)
 @export var tile_size: float = 4.0
@@ -21,6 +22,7 @@ var _rebake_pending: bool = false
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	var plane := PlaneMesh.new()
 	plane.size = map_size
 	var ground := MeshInstance3D.new()

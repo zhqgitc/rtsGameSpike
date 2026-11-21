@@ -1,5 +1,5 @@
 class_name HarvestJob
-extends RefCounted
+extends Job
 ## A harvester's standing orders: walk to a deposit, gather until full, carry
 ## the load to the nearest friendly drop-off, repeat. Cancelled by any other
 ## order given to the unit.

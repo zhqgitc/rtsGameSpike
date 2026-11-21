@@ -41,7 +41,7 @@ var _cooldown: float = 0.0
 var _scan_timer: float = 0.0
 var _repath_timer: float = 0.0
 var _stall_time: float = 0.0
-var _job: HarvestJob
+var _job: Job
 
 
 func setup(unit_def: UnitDef) -> void:
@@ -83,6 +83,15 @@ func issue_harvest(node: ResourceNode) -> void:
 	_job = HarvestJob.new(self, node)
 
 
+## Construct (or keep constructing) a building site.
+func issue_build(site: Building) -> void:
+	if site == null or site.complete or not def.builds.has(site.def):
+		return
+	_target = null
+	_go_idle()
+	_job = BuildJob.new(self, site)
+
+
 func stop() -> void:
 	_job = null
 	_go_idle()
@@ -90,7 +99,8 @@ func stop() -> void:
 
 ## Resources currently carried by a harvesting unit.
 func carried() -> int:
-	return _job.carried if _job != null else 0
+	var harvest := _job as HarvestJob
+	return harvest.carried if harvest != null else 0
 
 
 # --- Helpers for HarvestJob (move without cancelling the job) ---------------

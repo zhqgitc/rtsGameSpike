@@ -35,3 +35,26 @@ Central plan vs. spontaneous order. Mass vs. individual. One big target vs. many
 - **Second resource:** faction-specific, to be designed in M4b. Direction: Collectivists get a manpower/housing-style cap, Libertarians get a capital/trade-style income.
 - **Construction:** Warcraft style, workers walk to the site and build.
 - **Names so far:** Collectivist HQ = Central Committee Block, worker = Laborer. Libertarian HQ = Trading Post, worker = Prospector.
+
+## Second resource and building rules (confirmed by owner, M4b)
+
+### Collectivists: Manpower and the Plan
+- **Manpower** is a population cap. Housing is spartan: troops are battle-ready, not comfortable. Dormitory Blocks are cheap and fast to build.
+- Units and buildings are cheaper and quicker to produce, but weaker per unit than Libertarian ones.
+- **The Plan (M4c):** besides single units, production offers batch orders at a discount that take longer and deliver all at once.
+- **Planned zone:** Collectivists may only build within a set distance of a finished HQ (strong regulation as a real constraint).
+
+### Libertarians: Capital and Education
+- **Capital** is earned by independent Markets (more small buildings means more income). Trade with other peoples (not implemented yet) will boost it.
+- Capital buys units, buildings and upgrades. Mercenaries come later.
+- **Education:** units train slower and cost more, but are better. No population cap, so Materials and Capital are the limit.
+- Libertarians may build anywhere (no regulation).
+
+### Spike roster
+| | Collectivists | Libertarians |
+|---|---|---|
+| HQ | Central Committee Block | Trading Post |
+| Second-resource building | Dormitory Block (+8 Manpower) | Market (+1 Capital/s) |
+| Production building | Conscription Office | Militia Hall |
+
+Numbers are placeholders in `data/`: Collectivist HQ provides 24 Manpower so the starting army fits (the draft said 10); Libertarians start with 50 Capital; both start with 200 Materials.

@@ -116,7 +116,20 @@ func _order_move(screen_pos: Vector2) -> void:
 	if deposit != null:
 		Orders.harvest_group(selected, deposit)
 		return
+	var site := _unfinished_building_at(hit)
+	if site != null and Orders.build_group(selected, site) > 0:
+		return
 	Orders.move_group(selected, hit)
+
+
+## An unfinished building whose footprint contains a ground point, if any.
+func _unfinished_building_at(ground_point: Vector3) -> Building:
+	var point := Vector2(ground_point.x, ground_point.z)
+	for candidate in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := candidate as Building
+		if building != null and not building.complete and building.footprint().has_point(point):
+			return building
+	return null
 
 
 ## The resource deposit whose footprint contains a ground point, if any.
