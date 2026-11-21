@@ -41,6 +41,7 @@ var _cooldown: float = 0.0
 var _scan_timer: float = 0.0
 var _repath_timer: float = 0.0
 var _stall_time: float = 0.0
+var _job: HarvestJob
 
 
 func setup(unit_def: UnitDef) -> void:
@@ -60,22 +61,50 @@ func setup(unit_def: UnitDef) -> void:
 
 ## Walk to a point on the ground, ignoring enemies on the way.
 func issue_move(target: Vector3) -> void:
+	_job = null
 	_target = null
 	_begin_travel(target, State.MOVING)
 
 
 ## Attack a specific unit, chasing it as needed. Stays on it until it dies.
 func issue_attack(enemy: Unit) -> void:
-	if enemy == null or enemy == self or enemy._dead:
+	if not def.can_attack() or enemy == null or enemy == self or enemy._dead:
 		return
+	_job = null
 	_begin_attack(enemy, true)
 
 
-func stop() -> void:
+## Gather from a deposit and deliver to the nearest drop-off, repeatedly.
+func issue_harvest(node: ResourceNode) -> void:
+	if not def.can_harvest() or node == null:
+		return
 	_target = null
-	_halt()
-	state = State.IDLE
-	_scan_timer = 0.0
+	_go_idle()
+	_job = HarvestJob.new(self, node)
+
+
+func stop() -> void:
+	_job = null
+	_go_idle()
+
+
+## Resources currently carried by a harvesting unit.
+func carried() -> int:
+	return _job.carried if _job != null else 0
+
+
+# --- Helpers for HarvestJob (move without cancelling the job) ---------------
+
+func job_move_to(destination: Vector3) -> void:
+	_begin_travel(destination, State.MOVING)
+
+
+func job_stop() -> void:
+	_go_idle()
+
+
+func end_job() -> void:
+	_job = null
 
 
 func is_moving() -> bool:
@@ -101,7 +130,7 @@ func take_damage(amount: int, attacker: Unit) -> void:
 		_die()
 		return
 	# Hit while idle: hit back, or flee if too hurt to fight.
-	if state == State.IDLE and attacker != null and not attacker.is_dead():
+	if def.can_attack() and state == State.IDLE and attacker != null and not attacker.is_dead():
 		if is_demoralized():
 			_begin_retreat(attacker)
 		else:
@@ -121,9 +150,13 @@ func _physics_process(delta: float) -> void:
 			_tick_travel()
 		State.ATTACKING:
 			_tick_attack(delta)
+	if _job != null and not _dead:
+		_job.tick(delta)
 
 
 func _tick_idle(delta: float) -> void:
+	if not def.can_attack():
+		return
 	_scan_timer -= delta
 	if _scan_timer > 0.0:
 		return
@@ -148,7 +181,7 @@ func _tick_travel() -> void:
 
 func _tick_attack(delta: float) -> void:
 	if _target == null or not is_instance_valid(_target) or _target.is_dead():
-		stop()
+		_go_idle()
 		return
 	var to_target := _target.global_position - global_position
 	to_target.y = 0.0
@@ -158,7 +191,7 @@ func _tick_attack(delta: float) -> void:
 			_begin_retreat(_target)
 			return
 		if dist > def.acquire_range * LEASH_FACTOR:
-			stop()
+			_go_idle()
 			return
 	if dist > def.attack_range:
 		_repath_timer -= delta
@@ -210,6 +243,13 @@ func _begin_travel(destination: Vector3, travel_state: State) -> void:
 func _halt() -> void:
 	_path_active = false
 	_agent.velocity = Vector3.ZERO
+
+
+func _go_idle() -> void:
+	_target = null
+	_halt()
+	state = State.IDLE
+	_scan_timer = 0.0
 
 
 func _drive_path() -> void:

@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/rts_camera.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/ui/selection_controller.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/sim/economy.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/resource_label.gd" id="6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 
@@ -32,7 +34,21 @@ script = ExtResource("2")
 [node name="SelectionController" type="Node" parent="."]
 script = ExtResource("4")
 
+[node name="Economy" type="Node" parent="."]
+script = ExtResource("5")
+
+[node name="Buildings" type="Node3D" parent="."]
+
+[node name="Deposits" type="Node3D" parent="."]
+
 [node name="Units" type="Node3D" parent="."]
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+
+[node name="ResourceLabel" type="Label" parent="HUDLayer"]
+offset_left = 16.0
+offset_top = 12.0
+script = ExtResource("6")
 
 [node name="RTSCamera" type="Node3D" parent="."]
 script = ExtResource("3")

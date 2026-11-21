@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"collectivist_laborer"
+display_name = "Laborer"
+faction = &"collectivists"
+max_health = 40
+move_speed = 3.6
+formation_spacing = 1.5
+attack_damage = 0
+acquire_range = 0.0
+carry_capacity = 20
+gather_rate = 5.0
+shape = 0
+size = Vector3(1.1, 1.6, 1.1)
+color = Color(0.85, 0.42, 0.1, 1)
