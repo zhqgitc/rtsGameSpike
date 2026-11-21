@@ -28,13 +28,15 @@ var _problem: String = ""
 func _ready() -> void:
 	var layer := CanvasLayer.new()
 	_label = Label.new()
-	_label.position = Vector2(16, 90)
+	_label.position = Vector2(16, 64)
 	_label.add_theme_font_size_override("font_size", 18)
 	_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	_label.add_theme_constant_override("outline_size", 6)
 	_label.visible = false
 	layer.add_child(_label)
 	add_child(layer)
+	# Right clicks come from the camera, which also uses right-drag to pan.
+	(get_node("../RTSCamera") as RTSCamera).right_clicked.connect(_on_right_click)
 
 
 func _process(_delta: float) -> void:
@@ -64,9 +66,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.button_index == MOUSE_BUTTON_LEFT:
 		_try_place()
 		get_viewport().set_input_as_handled()
-	elif event.button_index == MOUSE_BUTTON_RIGHT:
+
+
+func is_placing() -> bool:
+	return _def != null
+
+
+func _on_right_click(_screen_position: Vector2) -> void:
+	if _def != null:
 		_cancel()
-		get_viewport().set_input_as_handled()
 
 
 func _start(index: int) -> bool:

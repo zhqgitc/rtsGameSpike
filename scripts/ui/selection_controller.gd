@@ -15,9 +15,13 @@ var _press_pos := Vector2.ZERO
 var _pressing := false
 var _dragging := false
 var _overlay: SelectionBoxOverlay
+var _session: Session
 
 
 func _ready() -> void:
+	_session = Session.find(get_tree())
+	# Right clicks come from the camera, which also uses right-drag to pan.
+	(get_node("../RTSCamera") as RTSCamera).right_clicked.connect(_order_move)
 	var layer := CanvasLayer.new()
 	_overlay = SelectionBoxOverlay.new()
 	layer.add_child(_overlay)
@@ -38,8 +42,6 @@ func _unhandled_input(event: InputEvent) -> void:
 					_select_in_rect(_drag_rect(event.position), event.shift_pressed)
 				else:
 					_select_at_point(event.position, event.shift_pressed)
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_order_move(event.position)
 	elif event is InputEventMouseMotion and _pressing:
 		if not _dragging and event.position.distance_to(_press_pos) > DRAG_THRESHOLD:
 			_dragging = true
@@ -51,14 +53,22 @@ func _drag_rect(current: Vector2) -> Rect2:
 	return Rect2(_press_pos, Vector2.ZERO).expand(current)
 
 
+## Only the player's own units and buildings can be selected.
+func _is_mine(faction: StringName) -> bool:
+	return _session == null or _session.player_faction == &"" or _session.is_player(faction)
+
+
 ## The unit under a screen point (nearest to the camera if several overlap).
-func _unit_at_point(point: Vector2) -> Unit:
+## Enemy units are only considered when `include_enemies` is set (attack targets).
+func _unit_at_point(point: Vector2, include_enemies: bool = false) -> Unit:
 	var cam := get_viewport().get_camera_3d()
 	var best: Unit = null
 	var best_dist := INF
 	for node in get_tree().get_nodes_in_group(Unit.GROUP):
 		var unit := node as Unit
 		if unit == null or cam.is_position_behind(unit.global_position):
+			continue
+		if not include_enemies and not _is_mine(unit.def.faction):
 			continue
 		if _screen_rect(cam, unit).has_point(point):
 			var dist := cam.global_position.distance_squared_to(unit.global_position)
@@ -92,7 +102,7 @@ func _building_at_point(point: Vector2) -> Building:
 	var best_dist := INF
 	for node in get_tree().get_nodes_in_group(Building.GROUP):
 		var building := node as Building
-		if building == null:
+		if building == null or not _is_mine(building.def.faction):
 			continue
 		var dist := building.ray_distance(origin, direction)
 		if dist >= 0.0 and dist < best_dist:
@@ -114,7 +124,7 @@ func _select_in_rect(rect: Rect2, additive: bool) -> void:
 	var picked: Array[Unit] = []
 	for node in get_tree().get_nodes_in_group(Unit.GROUP):
 		var unit := node as Unit
-		if unit == null or cam.is_position_behind(unit.global_position):
+		if unit == null or not _is_mine(unit.def.faction) or cam.is_position_behind(unit.global_position):
 			continue
 		if rect.intersects(_screen_rect(cam, unit)):
 			picked.append(unit)
@@ -136,11 +146,15 @@ func _apply_selection(picked: Array[Unit], additive: bool) -> void:
 
 
 func _order_move(screen_pos: Vector2) -> void:
+	# While placing a building, right click only cancels the placement.
+	var placer := get_node_or_null("../BuildPlacer") as BuildPlacer
+	if placer != null and placer.is_placing():
+		return
 	_prune_selection()
 	if selected.is_empty():
 		return
 	# Right-click on an enemy attacks it; anywhere else moves.
-	var clicked := _unit_at_point(screen_pos)
+	var clicked := _unit_at_point(screen_pos, true)
 	if clicked != null and _selection_has_enemy_of(clicked):
 		Orders.attack_group(selected, clicked)
 		return

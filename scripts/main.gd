@@ -24,6 +24,7 @@ func _ready() -> void:
 	economy.add(&"libertarians", &"materials", STARTING_MATERIALS)
 	economy.add(&"libertarians", &"capital", LIBERTARIAN_STARTING_CAPITAL)
 	_buildings.child_entered_tree.connect(_on_building_added)
+	($Session as Session).faction_chosen.connect(_on_faction_chosen)
 	_setup_collectivists()
 	_setup_libertarians()
 	# Buildings and deposits are new obstacles: bake them into the navmesh.
@@ -61,6 +62,15 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	var bar := HealthBar.new()
 	unit.add_child(bar)
 	bar.attach(unit)
+
+
+## Start the view on the chosen faction's HQ.
+func _on_faction_chosen(faction: StringName) -> void:
+	for node in _buildings.get_children():
+		var building := node as Building
+		if building != null and building.def.is_hq and building.def.faction == faction:
+			($RTSCamera as RTSCamera).focus_on(building.global_position)
+			return
 
 
 func _on_building_added(node: Node) -> void:

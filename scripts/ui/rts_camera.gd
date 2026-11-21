@@ -11,7 +11,16 @@ extends Node3D
 @export var zoom_step: float = 4.0
 @export var bounds: Vector2 = Vector2(60, 60) ## Max |x| and |z| of the focus point.
 
+## A right click that did not move; orders and cancels hang off this.
+signal right_clicked(screen_position: Vector2)
+
+const DRAG_THRESHOLD := 6.0
+
 var _zoom: float = 40.0
+var _rmb_down: bool = false
+var _rmb_dragging: bool = false
+var _rmb_start: Vector2 = Vector2.ZERO
+var _rmb_last: Vector2 = Vector2.ZERO
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -28,12 +37,55 @@ func _process(delta: float) -> void:
 		position.z = clampf(position.z + dir.y * step, -bounds.y, bounds.y)
 
 
+## Jump the view to centre on a ground point.
+func focus_on(point: Vector3) -> void:
+	position.x = clampf(point.x, -bounds.x, bounds.x)
+	position.z = clampf(point.z, -bounds.y, bounds.y)
+
+
+## This node sits last in the scene tree so it sees input first. It owns the
+## right mouse button: a drag pans the map ("grab" the ground), a click without
+## movement is reported through right_clicked for orders and cancelling.
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_set_zoom(_zoom - zoom_step)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_set_zoom(_zoom + zoom_step)
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				_rmb_down = true
+				_rmb_dragging = false
+				_rmb_start = event.position
+				_rmb_last = event.position
+			elif _rmb_down:
+				_rmb_down = false
+				if not _rmb_dragging:
+					right_clicked.emit(event.position)
+				_rmb_dragging = false
+			get_viewport().set_input_as_handled()
+		elif event.pressed:
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				_set_zoom(_zoom - zoom_step)
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				_set_zoom(_zoom + zoom_step)
+	elif event is InputEventMouseMotion and _rmb_down:
+		if not _rmb_dragging and event.position.distance_to(_rmb_start) > DRAG_THRESHOLD:
+			_rmb_dragging = true
+		if _rmb_dragging:
+			_drag_pan(event.position)
+			get_viewport().set_input_as_handled()
+
+
+## Move the camera so the ground point that was under the cursor stays under it.
+func _drag_pan(current: Vector2) -> void:
+	var before: Variant = _ground_point(_rmb_last)
+	var after: Variant = _ground_point(current)
+	_rmb_last = current
+	if before == null or after == null:
+		return
+	focus_on(position + (before - after))
+
+
+func _ground_point(screen_pos: Vector2) -> Variant:
+	return Plane(Vector3.UP, 0.0).intersects_ray(
+			_camera.project_ray_origin(screen_pos), _camera.project_ray_normal(screen_pos))
 
 
 func _read_pan_direction() -> Vector2:
@@ -46,7 +98,7 @@ func _read_pan_direction() -> Vector2:
 		dir.y -= 1.0
 	if Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN):
 		dir.y += 1.0
-	if edge_scroll_enabled and DisplayServer.window_is_focused():
+	if edge_scroll_enabled and not _rmb_dragging and DisplayServer.window_is_focused():
 		var vp := get_viewport()
 		var mouse := vp.get_mouse_position()
 		var size := vp.get_visible_rect().size
