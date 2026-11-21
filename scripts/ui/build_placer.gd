@@ -115,8 +115,10 @@ func _try_place() -> void:
 
 
 func _validate() -> String:
-	if not _economy.can_afford(_def.faction, _def.costs):
-		return "Not enough resources"
+	for resource in _def.costs:
+		var have := _economy.amount(_def.faction, resource)
+		if have < _def.costs[resource]:
+			return "Not enough %s (need %d, have %d)" % [String(resource).capitalize(), _def.costs[resource], have]
 	return Placement.check(get_tree(), _def, _position)
 
 
