@@ -9,6 +9,7 @@ display_name = "Freeholder"
 faction = &"libertarians"
 max_health = 120
 move_speed = 5.0
+formation_spacing = 3.2
 shape = 1
 size = Vector3(0.9, 1.8, 0.9)
 color = Color(0.95, 0.75, 0.1, 1)

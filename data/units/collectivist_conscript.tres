@@ -9,6 +9,7 @@ display_name = "Conscript"
 faction = &"collectivists"
 max_health = 60
 move_speed = 4.0
+formation_spacing = 1.5
 shape = 0
 size = Vector3(1.1, 1.8, 1.1)
 color = Color(0.72, 0.1, 0.1, 1)

@@ -55,3 +55,7 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 - [ ] Revisit orchestrator setup when cheap-model tasks become worthwhile
 - [x] Milestone 0 skeleton: project.godot, folders, .gitignore, main scene (headless boot verified)
 - [x] Milestone 1 (branch feature/m1-map-camera-units): flat map, RTS camera (WASD/arrows/edge scroll, wheel zoom), placeholder units from data/units/*.tres
+- [x] Milestone 2 (branch feature/m2-selection-orders-pathing): click/box selection, right-click move orders, navmesh pathing with avoidance, formation spacing per unit type
+
+## Backlog
+- Ctrl+left-click selects all units of the same type (owner request, after M2)
