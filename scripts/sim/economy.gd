@@ -37,14 +37,27 @@ func pop_cap(faction: StringName) -> int:
 	return total
 
 
-## Population currently occupied by living units.
+## Population occupied by living units plus units queued for training.
 func pop_used(faction: StringName) -> int:
 	var total := 0
 	for node in get_tree().get_nodes_in_group(Unit.GROUP):
 		var unit := node as Unit
 		if unit != null and unit.def.faction == faction:
 			total += unit.def.pop_cost
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building != null and building.def.faction == faction:
+			total += building.queued_pop()
 	return total
+
+
+## Empty if the costs are affordable, otherwise e.g. "Not enough Materials (need 150, have 80)".
+func shortfall(faction: StringName, costs: Dictionary) -> String:
+	for resource in costs:
+		var have := amount(faction, resource)
+		if have < costs[resource]:
+			return "Not enough %s (need %d, have %d)" % [String(resource).capitalize(), costs[resource], have]
+	return ""
 
 
 func can_afford(faction: StringName, costs: Dictionary) -> bool:

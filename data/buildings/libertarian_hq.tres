@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="BuildingDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="1"]
+[ext_resource type="Resource" path="res://data/units/libertarian_prospector.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -10,6 +11,7 @@ faction = &"libertarians"
 max_health = 600
 is_hq = true
 drop_off_resources = Array[StringName]([&"materials"])
+trains = Array[Resource]([ExtResource("3")])
 size = Vector3(5, 3, 5)
 color = Color(0.85, 0.8, 0.65, 1)
 accent_color = Color(0.95, 0.75, 0.1, 1)

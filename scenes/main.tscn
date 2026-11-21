@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/sim/economy.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/ui/resource_label.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/ui/build_placer.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/ui/production_controls.gd" id="8"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 
@@ -37,6 +38,9 @@ script = ExtResource("4")
 
 [node name="BuildPlacer" type="Node" parent="."]
 script = ExtResource("7")
+
+[node name="ProductionControls" type="Node" parent="."]
+script = ExtResource("8")
 
 [node name="Economy" type="Node" parent="."]
 script = ExtResource("5")

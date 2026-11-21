@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"libertarian_volunteer"
+display_name = "Volunteer"
+faction = &"libertarians"
+max_health = 70
+move_speed = 4.8
+formation_spacing = 3.0
+attack_range = 10.0
+attack_damage = 9
+attack_cooldown = 1.6
+projectile_speed = 28.0
+acquire_range = 12.0
+retreat_health_fraction = 0.4
+train_costs = {
+&"materials": 40,
+&"capital": 10
+}
+train_time = 8.0
+shape = 1
+size = Vector3(0.85, 1.7, 0.85)
+color = Color(1, 0.88, 0.45, 1)

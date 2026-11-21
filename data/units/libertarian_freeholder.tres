@@ -1,6 +1,8 @@
-[gd_resource type="Resource" script_class="UnitDef" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="UnitDef" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="2"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_workshop.tres" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -16,6 +18,12 @@ attack_cooldown = 1.4
 projectile_speed = 30.0
 acquire_range = 14.0
 retreat_health_fraction = 0.3
+train_costs = {
+&"materials": 60,
+&"capital": 20
+}
+train_time = 14.0
+requires = ExtResource("3")
 shape = 1
 size = Vector3(0.9, 1.8, 0.9)
 color = Color(0.95, 0.75, 0.1, 1)

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BuildingDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"libertarian_workshop"
+display_name = "Apprentice Workshop"
+faction = &"libertarians"
+max_health = 300
+costs = {
+&"materials": 100,
+&"capital": 20
+}
+build_time = 25.0
+size = Vector3(4, 2.6, 4)
+color = Color(0.6, 0.55, 0.4, 1)
+accent_color = Color(0.95, 0.75, 0.1, 1)

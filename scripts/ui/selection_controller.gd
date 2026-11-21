@@ -8,6 +8,8 @@ const DRAG_THRESHOLD := 6.0
 const CLICK_MIN_WIDTH := 24.0
 
 var selected: Array[Unit] = []
+## A selected building (mutually exclusive with selected units).
+var selected_building: Building
 
 var _press_pos := Vector2.ZERO
 var _pressing := false
@@ -71,7 +73,40 @@ func _select_at_point(point: Vector2, additive: bool) -> void:
 	var picked: Array[Unit] = []
 	if best:
 		picked.append(best)
+	elif not additive:
+		var building := _building_at_point(point)
+		if building != null:
+			_apply_selection(picked, false)
+			_set_building(building)
+			return
 	_apply_selection(picked, additive)
+
+
+## The building under a screen point, found by casting the camera ray into
+## each building's box (so clicking a roof works as well as a wall).
+func _building_at_point(point: Vector2) -> Building:
+	var cam := get_viewport().get_camera_3d()
+	var origin := cam.project_ray_origin(point)
+	var direction := cam.project_ray_normal(point)
+	var best: Building = null
+	var best_dist := INF
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building == null:
+			continue
+		var dist := building.ray_distance(origin, direction)
+		if dist >= 0.0 and dist < best_dist:
+			best_dist = dist
+			best = building
+	return best
+
+
+func _set_building(building: Building) -> void:
+	if is_instance_valid(selected_building):
+		selected_building.selected = false
+	selected_building = building
+	if building != null:
+		building.selected = true
 
 
 func _select_in_rect(rect: Rect2, additive: bool) -> void:
@@ -87,6 +122,8 @@ func _select_in_rect(rect: Rect2, additive: bool) -> void:
 
 
 func _apply_selection(picked: Array[Unit], additive: bool) -> void:
+	if not additive or not picked.is_empty():
+		_set_building(null)
 	if not additive:
 		for unit in selected:
 			if is_instance_valid(unit):
