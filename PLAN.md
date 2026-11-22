@@ -76,3 +76,8 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 - [x] G1 (branch feature/g1-world-look): gritty desaturated world look. Atmosphere (overcast sky, haze, low sun, SSAO, grading, vignette), procedural terrain shader, scattered rocks and concrete slabs, black map border dissolving into haze. Next: G2 buildings (brutalist Collectivists, varied Libertarians), G3 units, G4 effects.
 - [x] G1b: weather. Each game gets its own kind of day (overcast, dark, foggy, sunny) from data/weather/*.tres (WeatherPreset), chosen at random by default; the Atmosphere `day` property can fix one. Day name shown in the top bar.
 - [x] G2 (branch feature/g2-buildings): procedural building models. Collectivists: stepped brutalist Central Committee Block (tiers, portal, star banner, flags), Dormitory Block (window grid), Conscription Office (gate, banner, watch tower). Libertarians: brick-and-timber Trading Post, Market stall, timber Militia Hall with flag and sandbags, Apprentice Workshop. Map walls are ruined concrete shells. Scaffold while building, model when finished. Next: G3 units, G4 effects.
+
+## Backlog additions (owner notes)
+- Heroes for every faction.
+- Traitor heroes as a balance mechanic (heroes that can defect or be turned), mainly to help the Libertarians against the Collectivists' numbers.
+- Libertarian look: very free market, in the spirit of Hayek and Mises (signage, price tags, ledgers, books, scales and contracts). Collectivist look: as brutal as it can be.
