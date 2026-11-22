@@ -31,7 +31,7 @@ func _ready() -> void:
 	plane.size = map_size
 	var ground := MeshInstance3D.new()
 	ground.mesh = plane
-	ground.material_override = _make_grid_material()
+	ground.material_override = TerrainMaterial.create(tile_size)
 	add_child(ground)
 
 	var concrete := StandardMaterial3D.new()
@@ -94,18 +94,3 @@ func _setup_navigation() -> void:
 	nav.agent_radius = 0.5
 	navigation_mesh = nav
 
-
-func _make_grid_material() -> StandardMaterial3D:
-	var img := Image.create(64, 64, true, Image.FORMAT_RGB8)
-	img.fill(Color(0.32, 0.38, 0.27))
-	var line := Color(0.24, 0.29, 0.2)
-	for i in 64:
-		for t in 2:
-			img.set_pixel(i, t, line)
-			img.set_pixel(t, i, line)
-	img.generate_mipmaps()
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = ImageTexture.create_from_image(img)
-	mat.uv1_scale = Vector3(map_size.x / tile_size, map_size.y / tile_size, 1.0)
-	mat.roughness = 1.0
-	return mat
