@@ -34,18 +34,26 @@ func _physics_process(delta: float) -> void:
 		_target.take_damage(_damage, _attacker if is_instance_valid(_attacker) else null)
 		queue_free()
 		return
-	global_position += to_target.normalized() * step
+	var direction := to_target.normalized()
+	if absf(direction.y) < 0.98:
+		look_at(global_position + direction, Vector3.UP)
+	global_position += direction * step
 
 
+## A glowing tracer streak that points along its flight.
 func _build_visual() -> void:
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.15
-	sphere.height = 0.3
+	var streak := CapsuleMesh.new()
+	streak.radius = 0.045
+	streak.height = 1.1
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 0.95, 0.4)
+	mat.albedo_color = Color(1.0, 0.9, 0.5)
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.75, 0.25)
+	mat.emission_energy_multiplier = 3.0
 	var mesh_instance := MeshInstance3D.new()
-	mesh_instance.mesh = sphere
+	mesh_instance.mesh = streak
 	mesh_instance.material_override = mat
 	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.rotation.x = PI * 0.5 # the capsule's axis lies along the flight direction (-Z)
 	add_child(mesh_instance)
