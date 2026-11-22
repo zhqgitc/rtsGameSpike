@@ -50,6 +50,7 @@ func _on_faction_chosen(faction: StringName) -> void:
 	_card = CommandCard.new()
 	add_child(_card)
 	_card.setup(_faction, _selection, _placer, _economy)
+	_build_minimap()
 	visible = true
 	_refresh_resources()
 	_refresh_selection()
@@ -113,6 +114,24 @@ func _build_selection_panel() -> void:
 
 	_selection_panel.visible = false
 	add_child(_selection_panel)
+
+
+func _build_minimap() -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", HudStyle.panel_box(_faction))
+	# Pin to the bottom-left corner and grow up and right. All four offsets are
+	# set, as for the command card, so the panel starts empty at the corner.
+	panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	panel.grow_horizontal = Control.GROW_DIRECTION_END
+	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	panel.offset_left = 12.0
+	panel.offset_right = 12.0
+	panel.offset_top = -12.0
+	panel.offset_bottom = -12.0
+	var minimap := Minimap.new()
+	panel.add_child(minimap)
+	add_child(panel)
+	minimap.setup(get_node("../Terrain"), get_node("../RTSCamera"), _selection, _faction)
 
 
 func _make_queue_slot() -> Dictionary:

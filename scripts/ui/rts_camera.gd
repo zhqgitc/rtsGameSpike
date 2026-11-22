@@ -37,6 +37,18 @@ func _process(delta: float) -> void:
 		position.z = clampf(position.z + dir.y * step, -bounds.y, bounds.y)
 
 
+## Where the four screen corners land on the ground (for the minimap's view
+## outline). Corners whose ray misses the ground are left out.
+func view_corners_on_ground() -> PackedVector3Array:
+	var corners := PackedVector3Array()
+	var size := get_viewport().get_visible_rect().size
+	for point in [Vector2(0, 0), Vector2(size.x, 0), size, Vector2(0, size.y)]:
+		var hit: Variant = _ground_point(point)
+		if hit != null:
+			corners.append(hit)
+	return corners
+
+
 ## Jump the view to centre on a ground point.
 func focus_on(point: Vector3) -> void:
 	position.x = clampf(point.x, -bounds.x, bounds.x)
