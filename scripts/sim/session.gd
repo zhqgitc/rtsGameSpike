@@ -8,6 +8,8 @@ signal faction_chosen(faction: StringName)
 const GROUP := &"session"
 
 var player_faction: StringName = &""
+## How hard the opponent plays (see data/ai/difficulty_*.tres); chosen on the start screen.
+var difficulty: StringName = &"normal"
 
 
 func _ready() -> void:

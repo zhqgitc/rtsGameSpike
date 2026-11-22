@@ -86,7 +86,7 @@ func _tick_to_dropoff() -> void:
 	if _flat_distance(_dropoff.global_position) <= _dropoff.reach():
 		var economy := _unit.get_tree().get_first_node_in_group(Economy.GROUP) as Economy
 		if economy != null:
-			economy.add(_unit.def.faction, _resource, carried)
+			economy.add(_unit.def.faction, _resource, roundi(carried * economy.income_factor(_unit.def.faction)))
 		carried = 0
 		_unit.job_stop()
 		phase = Phase.TO_NODE

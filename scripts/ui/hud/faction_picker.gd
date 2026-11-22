@@ -17,6 +17,15 @@ const CHOICES := [
 ]
 
 
+const DIFFICULTIES := [
+	{"id": &"easy", "title": "Easy"},
+	{"id": &"normal", "title": "Normal"},
+	{"id": &"hard", "title": "Hard"},
+]
+
+var _difficulty: StringName = &"normal"
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	layer = 10
@@ -49,6 +58,7 @@ func _build() -> void:
 	column.add_child(row)
 	for choice in CHOICES:
 		row.add_child(_make_button(choice))
+	column.add_child(_make_difficulty_row())
 
 
 func _make_button(choice: Dictionary) -> Button:
@@ -72,9 +82,35 @@ func _make_button(choice: Dictionary) -> Button:
 	return button
 
 
+## "Opponent: Easy / Normal / Hard". Hard gives the computer extra income.
+func _make_difficulty_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	var label := Label.new()
+	label.text = "Opponent:"
+	label.add_theme_font_size_override("font_size", 22)
+	row.add_child(label)
+	var group := ButtonGroup.new()
+	for level in DIFFICULTIES:
+		var button := Button.new()
+		button.text = level["title"]
+		button.toggle_mode = true
+		button.button_group = group
+		button.button_pressed = level["id"] == _difficulty
+		button.custom_minimum_size = Vector2(110, 40)
+		button.add_theme_font_size_override("font_size", 20)
+		button.toggled.connect(func(pressed: bool) -> void:
+			if pressed:
+				_difficulty = level["id"])
+		row.add_child(button)
+	return row
+
+
 func _on_chosen(faction: StringName) -> void:
 	var session := Session.find(get_tree())
 	if session != null:
+		session.difficulty = _difficulty
 		session.choose(faction)
 	get_tree().paused = false
 	queue_free()
