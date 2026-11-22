@@ -8,6 +8,7 @@
 
 [resource]
 script = ExtResource("1")
+sight_range = 10.0
 id = &"libertarian_prospector"
 display_name = "Prospector"
 faction = &"libertarians"

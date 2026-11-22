@@ -11,6 +11,7 @@ const OBSTACLE_COLOR := Color(0.5, 0.5, 0.55)
 const DEPOSIT_COLOR := Color(0.7, 0.48, 0.22)
 
 var _terrain: Terrain
+var _fog: FogOfWar
 var _rig: RTSCamera
 var _selection: SelectionController
 var _player_faction: StringName = &""
@@ -18,8 +19,9 @@ var _dragging: bool = false
 var _since_refresh: float = 0.0
 
 
-func setup(terrain: Terrain, rig: RTSCamera, selection: SelectionController, player_faction: StringName) -> void:
+func setup(terrain: Terrain, rig: RTSCamera, selection: SelectionController, fog: FogOfWar, player_faction: StringName) -> void:
 	_terrain = terrain
+	_fog = fog
 	_rig = rig
 	_selection = selection
 	_player_faction = player_faction
@@ -80,19 +82,22 @@ func _draw() -> void:
 		return
 	draw_rect(Rect2(Vector2.ZERO, size), GROUND_COLOR, true)
 	for obstacle in _terrain.obstacles:
-		draw_rect(_rect_to_map(obstacle), OBSTACLE_COLOR, true)
+		if _fog.best_state_in(obstacle) != FogOfWar.State.UNEXPLORED:
+			draw_rect(_rect_to_map(obstacle), OBSTACLE_COLOR, true)
 	for node in get_tree().get_nodes_in_group(ResourceNode.GROUP):
 		var deposit := node as ResourceNode
-		if deposit != null:
+		if deposit != null and _fog.is_explored_at(deposit.global_position):
 			draw_rect(Rect2(_to_map(deposit.global_position) - Vector2(2, 2), Vector2(4, 4)), DEPOSIT_COLOR, true)
 	for node in get_tree().get_nodes_in_group(Building.GROUP):
 		var building := node as Building
-		if building != null:
+		if building != null and building.visible:
 			_draw_building(building)
 	for node in get_tree().get_nodes_in_group(Unit.GROUP):
 		var unit := node as Unit
-		if unit != null:
+		if unit != null and unit.visible:
 			_draw_unit(unit)
+	# Fog of war on top of the marks, then the view outline.
+	draw_texture_rect(_fog.overlay_texture, Rect2(Vector2.ZERO, size), false)
 	_draw_view_outline()
 	draw_rect(Rect2(Vector2.ZERO, size), HudStyle.palette(_player_faction)["border"], false, 2.0)
 

@@ -131,7 +131,7 @@ func _build_minimap() -> void:
 	var minimap := Minimap.new()
 	panel.add_child(minimap)
 	add_child(panel)
-	minimap.setup(get_node("../Terrain"), get_node("../RTSCamera"), _selection, _faction)
+	minimap.setup(get_node("../Terrain"), get_node("../RTSCamera"), _selection, get_node("../Fog"), _faction)
 
 
 func _make_queue_slot() -> Dictionary:

@@ -11,6 +11,10 @@ extends Resource
 ## Resource ids this building accepts deliveries of (empty = not a drop-off).
 @export var drop_off_resources: Array[StringName] = []
 
+@export_group("Senses")
+## How far this building sees once finished (reveals fog of war).
+@export var sight_range: float = 12.0
+
 @export_group("Construction")
 ## Resource id -> amount, paid when the building is placed.
 @export var costs: Dictionary = {}

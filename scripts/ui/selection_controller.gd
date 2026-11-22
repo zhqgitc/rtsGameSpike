@@ -70,6 +70,8 @@ func _unit_at_point(point: Vector2, include_enemies: bool = false) -> Unit:
 			continue
 		if not include_enemies and not _is_mine(unit.def.faction):
 			continue
+		if not unit.visible: ## Hidden by the fog of war.
+			continue
 		if _screen_rect(cam, unit).has_point(point):
 			var dist := cam.global_position.distance_squared_to(unit.global_position)
 			if dist < best_dist:
