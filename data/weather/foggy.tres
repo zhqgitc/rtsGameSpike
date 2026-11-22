@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeatherPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/weather_preset.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"foggy"
+display_name = "Foggy day"
+sky_top = Color(0.52, 0.53, 0.53, 1)
+sky_horizon = Color(0.64, 0.63, 0.60, 1)
+ground_bottom = Color(0.40, 0.39, 0.37, 1)
+fog_color = Color(0.60, 0.59, 0.56, 1)
+fog_density = 0.0105
+sun_color = Color(0.95, 0.92, 0.86, 1)
+sun_energy = 0.75
+sun_rotation = Vector3(-44, -28, 0)
+shadow_blur = 3.2
+ambient_energy = 0.95
+saturation = 0.5
+contrast = 1.0
+vignette = 0.4

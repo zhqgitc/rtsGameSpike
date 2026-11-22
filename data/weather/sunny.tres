@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeatherPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/weather_preset.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"sunny"
+display_name = "Sunny day"
+sky_top = Color(0.30, 0.37, 0.46, 1)
+sky_horizon = Color(0.64, 0.59, 0.50, 1)
+ground_bottom = Color(0.28, 0.25, 0.21, 1)
+fog_color = Color(0.60, 0.55, 0.47, 1)
+fog_density = 0.0022
+sun_color = Color(1, 0.82, 0.58, 1)
+sun_energy = 2.0
+sun_rotation = Vector3(-30, -42, 0)
+shadow_blur = 0.6
+ambient_energy = 0.72
+saturation = 0.82
+contrast = 1.12
+vignette = 0.32

@@ -74,3 +74,4 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 
 ## Graphics
 - [x] G1 (branch feature/g1-world-look): gritty desaturated world look. Atmosphere (overcast sky, haze, low sun, SSAO, grading, vignette), procedural terrain shader, scattered rocks and concrete slabs, black map border dissolving into haze. Next: G2 buildings (brutalist Collectivists, varied Libertarians), G3 units, G4 effects.
+- [x] G1b: weather. Each game gets its own kind of day (overcast, dark, foggy, sunny) from data/weather/*.tres (WeatherPreset), chosen at random by default; the Atmosphere `day` property can fix one. Day name shown in the top bar.

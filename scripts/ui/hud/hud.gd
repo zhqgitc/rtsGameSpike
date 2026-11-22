@@ -11,6 +11,7 @@ const QUEUE_SLOT_SIZE := Vector2(46, 46)
 var _faction: StringName = &""
 var _materials: Label
 var _second: Label
+var _day: Label
 var _selection_panel: PanelContainer
 var _title: Label
 var _hp_bar: ProgressBar
@@ -71,6 +72,13 @@ func _build_resource_bar() -> void:
 	for label in [_materials, _second]:
 		HudStyle.style_label(label, _faction, 20)
 		row.add_child(label)
+	# The kind of day, pushed to the right-hand end of the bar.
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+	_day = Label.new()
+	HudStyle.style_label(_day, _faction, 16)
+	row.add_child(_day)
 	add_child(bar)
 
 
@@ -174,6 +182,8 @@ func _make_queue_slot() -> Dictionary:
 # --- Refresh ----------------------------------------------------------------
 
 func _refresh_resources() -> void:
+	var atmosphere := get_node_or_null("../Atmosphere") as Atmosphere
+	_day.text = atmosphere.current.display_name if atmosphere != null and atmosphere.current != null else ""
 	_materials.text = "Materials  %d" % _economy.amount(_faction, &"materials")
 	if _faction == &"collectivists":
 		_second.text = "Manpower  %d / %d" % [_economy.pop_used(_faction), _economy.pop_cap(_faction)]
