@@ -81,3 +81,4 @@ Total: about 17-22 sessions. Biggest risks: group movement feel (2), fog in 3D (
 - Heroes for every faction.
 - Traitor heroes as a balance mechanic (heroes that can defect or be turned), mainly to help the Libertarians against the Collectivists' numbers.
 - Libertarian look: very free market, in the spirit of Hayek and Mises (signage, price tags, ledgers, books, scales and contracts). Collectivist look: as brutal as it can be.
+- [x] G2b: owner feedback applied. Collectivist buildings pushed to maximum brutalism (monolithic Committee Block with a cantilevered upper mass, tower, loudspeaker horns, searchlights and a red star; barred-window Dormitory; fortress-like Conscription Office with guard towers and barbed wire). Libertarian buildings go full free market: chalkboard of supply and demand, signs (FREE TRADE, NO PERMITS REQUIRED, PRICES BY AGREEMENT, VOLUNTEERS ONLY, LEARN BY DOING), price tags, ledger, scales, hanging goods, bookshelf, coin flag.

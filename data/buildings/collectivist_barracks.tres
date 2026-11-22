@@ -20,6 +20,6 @@ plan_batch_size = 5
 plan_cost_factor = 0.75
 plan_time_factor = 1.2
 visual = &"conscription_office"
-size = Vector3(7, 7.0, 7)
+size = Vector3(7, 7.6, 7)
 color = Color(0.38, 0.38, 0.4, 1)
 accent_color = Color(0.72, 0.1, 0.1, 1)

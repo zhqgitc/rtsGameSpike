@@ -71,6 +71,12 @@ void fragment() {
 		base *= 0.85;
 	}
 
+	// Board-formed concrete: faint horizontal formwork lines and vertical panel joints.
+	if (wall) {
+		base *= 1.0 - smoothstep(0.03, 0.0, abs(fract(uv.y / 0.45) - 0.5)) * 0.1;
+		base *= 1.0 - smoothstep(0.015, 0.0, abs(fract(uv.x / 2.4) - 0.5)) * 0.16;
+	}
+
 	// Grime and soot collect toward the ground.
 	base *= mix(0.45, 1.0, smoothstep(0.0, 2.2, world_pos.y));
 
