@@ -43,7 +43,11 @@ extends Resource
 ## Batch time relative to training the same number one by one.
 @export var plan_time_factor: float = 1.2
 
-@export_group("Placeholder visuals")
+@export_group("Visuals")
+## Which procedural model to build (see BuildingArt); empty = a plain box.
+@export var visual: StringName
+## Footprint (x, z) and overall height (y) of the building. The footprint
+## drives placement and pathing; the model is built to fit it.
 @export var size: Vector3 = Vector3(6, 4, 6)
 @export var color: Color = Color(0.5, 0.5, 0.52)
 ## Roof band in the faction colour so buildings read at a glance.

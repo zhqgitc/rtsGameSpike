@@ -41,8 +41,9 @@ var selected: bool = false:
 		if _selection_marker:
 			_selection_marker.visible = value
 
-var _body: MeshInstance3D
+var _body: MeshInstance3D ## Translucent scaffold shown while under construction.
 var _roof: MeshInstance3D
+var _model: Node3D ## The finished, detailed model (BuildingArt).
 var _body_material: StandardMaterial3D
 var _selection_marker: MeshInstance3D
 var _income_accumulator: Dictionary = {}
@@ -55,6 +56,7 @@ func setup(building_def: BuildingDef) -> void:
 	name = "%s_%d" % [def.id, get_instance_id()]
 	add_to_group(GROUP)
 	_build_visuals()
+	_update_construction_visual() # shows the finished model (or the scaffold) from the start
 	_build_collider()
 	_build_selection_marker()
 	configured.emit(self)
@@ -115,6 +117,8 @@ func set_remembered(remembered: bool) -> void:
 		dim.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_body.material_overlay = dim
 	_roof.material_overlay = dim
+	for mesh in _model.find_children("*", "MeshInstance3D", true, false):
+		(mesh as MeshInstance3D).material_overlay = dim
 
 
 func progress_fraction() -> float:
@@ -291,6 +295,9 @@ func _build_visuals() -> void:
 	_roof.position.y = def.size.y - 0.25 + 0.03
 	add_child(_roof)
 
+	_model = BuildingArt.build(def)
+	add_child(_model)
+
 
 func _build_collider() -> void:
 	var body := StaticBody3D.new()
@@ -329,7 +336,10 @@ func _update_construction_visual() -> void:
 	var height_scale := 1.0 if complete else maxf(fraction, MIN_SCAFFOLD_HEIGHT)
 	_body.scale.y = height_scale
 	_body.position.y = def.size.y * height_scale * 0.5
-	_roof.visible = complete
+	# The scaffold shows while building; the finished model replaces it.
+	_roof.visible = false
+	_body.visible = not complete
+	_model.visible = complete
 	if complete:
 		_body_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 		_body_material.albedo_color = def.color

@@ -34,8 +34,7 @@ func _ready() -> void:
 	ground.material_override = TerrainMaterial.create(tile_size)
 	add_child(ground)
 
-	var concrete := StandardMaterial3D.new()
-	concrete.albedo_color = Color(0.45, 0.45, 0.48)
+	var concrete := BuildingArt.ruin_material(obstacle_height)
 	for rect in obstacles:
 		var box := BoxMesh.new()
 		box.size = Vector3(rect.size.x, obstacle_height, rect.size.y)
