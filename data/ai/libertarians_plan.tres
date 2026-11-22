@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AIPlan" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/ai_plan.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="3"]
+[ext_resource type="Resource" path="res://data/units/libertarian_prospector.tres" id="4"]
+[ext_resource type="Resource" path="res://data/units/libertarian_freeholder.tres" id="5"]
+[ext_resource type="Resource" path="res://data/units/libertarian_volunteer.tres" id="6"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_market.tres" id="7"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_workshop.tres" id="8"]
+[ext_resource type="Resource" path="res://data/buildings/libertarian_militia.tres" id="9"]
+
+[resource]
+script = ExtResource("1")
+faction = &"libertarians"
+worker = ExtResource("4")
+target_workers = 5
+build_order = Array[ExtResource("3")]([ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("7"), ExtResource("7")])
+army = Array[ExtResource("2")]([ExtResource("5"), ExtResource("6")])
+use_plan_batches = false
+max_queued_per_building = 2

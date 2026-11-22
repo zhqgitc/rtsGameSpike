@@ -106,15 +106,11 @@ func _try_place() -> void:
 	_problem = _validate()
 	if not _problem.is_empty():
 		return
-	var builder := _first_builder()
-	if builder == null or not _economy.spend(_def.faction, _def.costs):
+	if _first_builder() == null:
 		return
-	var site := Building.new()
-	_buildings.add_child(site)
-	site.setup(_def)
-	site.position = _position
-	site.begin_construction()
-	_terrain.rebake()
+	var site := Construction.begin(_buildings, _def, _position, _economy, _terrain)
+	if site == null:
+		return
 	Orders.build_group(_selection.selected, site)
 	_cancel()
 

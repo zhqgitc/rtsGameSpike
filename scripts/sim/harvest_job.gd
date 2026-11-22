@@ -95,8 +95,10 @@ func _tick_to_dropoff() -> void:
 		_unit.job_move_to(_dropoff.global_position)
 
 
-func _node_usable(node: ResourceNode) -> bool:
-	return node != null and is_instance_valid(node) and node.amount > 0
+## The deposit may have been used up and freed since we last looked, so the
+## parameter is untyped: a freed object cannot be passed as a ResourceNode.
+func _node_usable(node: Variant) -> bool:
+	return is_instance_valid(node) and (node as ResourceNode).amount > 0
 
 
 func _find_node() -> ResourceNode:

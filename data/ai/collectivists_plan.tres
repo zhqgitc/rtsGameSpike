@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AIPlan" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/ai_plan.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/sim/unit_def.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/sim/building_def.gd" id="3"]
+[ext_resource type="Resource" path="res://data/units/collectivist_laborer.tres" id="4"]
+[ext_resource type="Resource" path="res://data/units/collectivist_conscript.tres" id="5"]
+[ext_resource type="Resource" path="res://data/buildings/collectivist_housing.tres" id="6"]
+[ext_resource type="Resource" path="res://data/buildings/collectivist_barracks.tres" id="7"]
+
+[resource]
+script = ExtResource("1")
+faction = &"collectivists"
+worker = ExtResource("4")
+target_workers = 6
+build_order = Array[ExtResource("3")]([ExtResource("7")])
+housing = ExtResource("6")
+housing_margin = 5
+army = Array[ExtResource("2")]([ExtResource("5")])
+use_plan_batches = true
+max_queued_per_building = 2
