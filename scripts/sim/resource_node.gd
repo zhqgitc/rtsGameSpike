@@ -13,7 +13,7 @@ const GROUP := &"resource_nodes"
 @export var radius: float = 1.5
 
 var _initial_amount: int = 0
-var _mesh: MeshInstance3D
+var _model: Node3D
 
 
 func _ready() -> void:
@@ -35,15 +35,8 @@ func extract(wanted: int) -> int:
 
 
 func _build() -> void:
-	var box := BoxMesh.new()
-	box.size = Vector3(radius * 2.0, 1.6, radius * 2.0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.62, 0.42, 0.2)
-	mat.roughness = 0.9
-	_mesh = MeshInstance3D.new()
-	_mesh.mesh = box
-	_mesh.material_override = mat
-	add_child(_mesh)
+	_model = DepositArt.build(radius, get_instance_id())
+	add_child(_model)
 
 	var body := StaticBody3D.new()
 	var shape := CollisionShape3D.new()
@@ -57,10 +50,9 @@ func _build() -> void:
 	_update_visual()
 
 
+## The heap shrinks as it is mined: lower first, then narrower.
 func _update_visual() -> void:
-	if _mesh == null:
+	if _model == null:
 		return
 	var fraction := clampf(float(amount) / float(maxi(_initial_amount, 1)), 0.0, 1.0)
-	var height := lerpf(0.5, 1.6, fraction)
-	_mesh.scale.y = height / 1.6
-	_mesh.position.y = height * 0.5
+	_model.scale = Vector3(lerpf(0.6, 1.0, fraction), lerpf(0.3, 1.0, fraction), lerpf(0.6, 1.0, fraction))
