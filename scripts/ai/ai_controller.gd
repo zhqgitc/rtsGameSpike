@@ -16,8 +16,18 @@ const STALL_LIMIT_SECONDS := 40.0
 ## Spots near an abandoned site are not tried again within this distance.
 const BAD_SPOT_RADIUS := 5.0
 
+## Own units within this distance of the AI's HQ draw its idle army to defend.
+const DEFEND_RADIUS := 28.0
+
 var faction: StringName = &""
 var plan: AIPlan
+var difficulty: AIDifficulty
+var waves_launched: int = 0
+
+var _elapsed: float = 0.0
+var _next_wave_at: float = 0.0
+var _wave_units: Array[Unit] = []
+var _wave_launch_size: int = 0
 
 var _since_think: float = 0.0
 ## True while the AI is waiting to afford its next building, so it does not
@@ -41,11 +51,15 @@ func _ready() -> void:
 func _on_player_chose(player_faction: StringName) -> void:
 	faction = &"libertarians" if player_faction == &"collectivists" else &"collectivists"
 	plan = load("res://data/ai/%s_plan.tres" % faction) as AIPlan
+	difficulty = load("res://data/ai/difficulty_%s.tres" % _session.difficulty) as AIDifficulty
+	_economy.set_income_factor(faction, difficulty.income_factor)
+	_next_wave_at = plan.first_wave_time * difficulty.first_wave_factor
 
 
 func _physics_process(delta: float) -> void:
 	if plan == null or _rules.ended:
 		return
+	_elapsed += delta
 	_since_think += delta
 	if _since_think < THINK_INTERVAL:
 		return
@@ -53,11 +67,12 @@ func _physics_process(delta: float) -> void:
 	_manage_workers()
 	_manage_construction()
 	_manage_production()
+	_manage_army()
 
 
 ## One line describing what the AI has, for tests and debugging.
 func status() -> String:
-	return "workers=%d army=%d buildings=%s saving=%s" % [_workers().size(), _army_count(), _building_summary(), _saving]
+	return "workers=%d army=%d waves=%d in_wave=%d buildings=%d saving=%s" % [_workers().size(), _army_count(), waves_launched, _wave_units.size(), _own_buildings().size(), _saving]
 
 
 # --- Workers ----------------------------------------------------------------
@@ -243,6 +258,133 @@ func _train_army_at(building: Building) -> void:
 		return ## The best available unit is not affordable yet: wait for it.
 
 
+# --- Army -------------------------------------------------------------------
+
+## Defend when threatened, otherwise gather an army and send it out in waves.
+func _manage_army() -> void:
+	var hq := _hq()
+	if hq == null:
+		return
+	_prune_wave()
+	var threat := _nearest_enemy_unit(hq.global_position, DEFEND_RADIUS)
+	if threat != null:
+		_defend(threat)
+	if not _wave_units.is_empty():
+		_continue_wave(hq)
+	elif _elapsed >= _next_wave_at:
+		_launch_wave(hq)
+
+
+func _prune_wave() -> void:
+	var alive: Array[Unit] = []
+	for unit in _wave_units:
+		if is_instance_valid(unit) and not unit.is_dead():
+			alive.append(unit)
+	_wave_units = alive
+
+
+## Idle units come out to meet whoever approaches the base.
+func _defend(threat: Unit) -> void:
+	var defenders: Array[Unit] = []
+	for unit in _army_units():
+		if unit.state == Unit.State.IDLE and not _wave_units.has(unit):
+			defenders.append(unit)
+	if not defenders.is_empty():
+		Orders.move_group(defenders, threat.global_position, true)
+
+
+func _launch_wave(hq: Building) -> void:
+	var army := _army_units()
+	# The units nearest the HQ stay behind as the home guard.
+	army.sort_custom(func(a: Unit, b: Unit) -> bool:
+		return a.global_position.distance_squared_to(hq.global_position) < b.global_position.distance_squared_to(hq.global_position))
+	var guard := mini(plan.home_guard, army.size())
+	var needed := ceili(plan.wave_size * difficulty.wave_size_factor)
+	if army.size() - guard < needed:
+		return
+	var target: Variant = _pick_target(hq)
+	if target == null:
+		return
+	_wave_units.clear()
+	var last := army.size() if plan.send_all else guard + needed
+	for i in range(guard, last):
+		_wave_units.append(army[i])
+	_wave_launch_size = _wave_units.size()
+	waves_launched += 1
+	_next_wave_at = _elapsed + plan.wave_interval * difficulty.interval_factor
+	Orders.move_group(_wave_units, target, true)
+
+
+func _continue_wave(hq: Building) -> void:
+	# A losing wave is called back if the plan says so (the Collectivists never do).
+	if plan.recall_below > 0.0 and float(_wave_units.size()) / float(_wave_launch_size) < plan.recall_below:
+		Orders.move_group(_wave_units, hq.global_position, false)
+		_wave_units.clear()
+		return
+	# When everyone has stopped (arrived, or their target is gone), pick the next target.
+	for unit in _wave_units:
+		if unit.state != Unit.State.IDLE:
+			return
+	var target: Variant = _pick_target(hq)
+	if target == null:
+		_wave_units.clear()
+	else:
+		Orders.move_group(_wave_units, target, true)
+
+
+## Where a wave goes: the player's workers (raids) or HQ, then whatever
+## buildings are left. The AI knows where the player's base is, as in classic
+## RTS games; it does not look through the fog of war.
+func _pick_target(hq: Building) -> Variant:
+	if plan.raid_target == &"workers":
+		var worker := _nearest_player_unit(hq.global_position, func(u: Unit) -> bool: return u.def.can_harvest())
+		if worker != null:
+			return worker.global_position
+	var nearest: Building = null
+	var nearest_distance := INF
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building == null or building.def.faction == faction or building.is_dead():
+			continue
+		if building.def.is_hq:
+			return building.global_position
+		var d := building.global_position.distance_squared_to(hq.global_position)
+		if d < nearest_distance:
+			nearest_distance = d
+			nearest = building
+	return nearest.global_position if nearest != null else null
+
+
+## The closest of the player's armed units within `radius` of a point.
+func _nearest_enemy_unit(point: Vector3, radius: float) -> Unit:
+	var best: Unit = null
+	var best_distance := radius * radius
+	for node in get_tree().get_nodes_in_group(Unit.GROUP):
+		var unit := node as Unit
+		if unit == null or unit.def.faction == faction or not unit.def.can_attack():
+			continue
+		var d := unit.global_position.distance_squared_to(point)
+		if d < best_distance:
+			best_distance = d
+			best = unit
+	return best
+
+
+## The player's unit nearest to a point that passes a filter.
+func _nearest_player_unit(point: Vector3, accept: Callable) -> Unit:
+	var best: Unit = null
+	var best_distance := INF
+	for node in get_tree().get_nodes_in_group(Unit.GROUP):
+		var unit := node as Unit
+		if unit == null or unit.def.faction == faction or not accept.call(unit):
+			continue
+		var d := unit.global_position.distance_squared_to(point)
+		if d < best_distance:
+			best_distance = d
+			best = unit
+	return best
+
+
 # --- Queries ----------------------------------------------------------------
 
 func _hq() -> Building:
@@ -274,6 +416,14 @@ func _workers() -> Array[Unit]:
 	var result: Array[Unit] = []
 	for unit in _own_units():
 		if unit.def == plan.worker:
+			result.append(unit)
+	return result
+
+
+func _army_units() -> Array[Unit]:
+	var result: Array[Unit] = []
+	for unit in _own_units():
+		if unit.def.can_attack():
 			result.append(unit)
 	return result
 

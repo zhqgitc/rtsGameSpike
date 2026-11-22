@@ -8,10 +8,20 @@ signal changed(faction: StringName, resource: StringName, amount: int)
 const GROUP := &"economy"
 
 var _stock: Dictionary = {} ## faction -> { resource -> int }
+var _income_factors: Dictionary = {} ## faction -> multiplier on everything it earns (Hard AI cheat)
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
+
+
+## Multiplier on what a faction harvests and earns (1.0 unless a difficulty says otherwise).
+func income_factor(faction: StringName) -> float:
+	return _income_factors.get(faction, 1.0)
+
+
+func set_income_factor(faction: StringName, factor: float) -> void:
+	_income_factors[faction] = factor
 
 
 func amount(faction: StringName, resource: StringName) -> int:

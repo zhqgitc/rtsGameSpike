@@ -234,7 +234,7 @@ func _tick_income(delta: float) -> void:
 	if economy == null:
 		return
 	for resource in def.income:
-		var acc: float = _income_accumulator.get(resource, 0.0) + def.income[resource] * delta
+		var acc: float = _income_accumulator.get(resource, 0.0) + def.income[resource] * delta * economy.income_factor(def.faction)
 		var whole := int(acc)
 		if whole > 0:
 			economy.add(def.faction, resource, whole)

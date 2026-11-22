@@ -183,7 +183,10 @@ func _make_queue_slot() -> Dictionary:
 
 func _refresh_resources() -> void:
 	var atmosphere := get_node_or_null("../Atmosphere") as Atmosphere
-	_day.text = atmosphere.current.display_name if atmosphere != null and atmosphere.current != null else ""
+	var ai := get_node_or_null("../AIController") as AIController
+	var day := atmosphere.current.display_name if atmosphere != null and atmosphere.current != null else ""
+	var level := "Opponent: %s" % ai.difficulty.display_name if ai != null and ai.difficulty != null else ""
+	_day.text = "   ·   ".join([level, day].filter(func(part: String) -> bool: return not part.is_empty()))
 	_materials.text = "Materials  %d" % _economy.amount(_faction, &"materials")
 	if _faction == &"collectivists":
 		_second.text = "Manpower  %d / %d" % [_economy.pop_used(_faction), _economy.pop_cap(_faction)]
