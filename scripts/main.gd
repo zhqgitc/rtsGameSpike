@@ -62,6 +62,7 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	var bar := HealthBar.new()
 	unit.add_child(bar)
 	bar.attach(unit)
+	($FogPresenter as FogPresenter).apply_to_unit(unit)
 
 
 ## Start the view on the chosen faction's HQ.

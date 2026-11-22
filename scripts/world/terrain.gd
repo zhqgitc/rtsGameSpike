@@ -18,6 +18,10 @@ const GROUP := &"terrain"
 ]
 @export var obstacle_height: float = 4.0
 
+## The visible block for each entry of `obstacles` (same order), so the fog of
+## war can hide walls the player has not explored yet.
+var obstacle_meshes: Array[MeshInstance3D] = []
+
 var _rebake_pending: bool = false
 
 
@@ -40,6 +44,7 @@ func _ready() -> void:
 		block.material_override = concrete
 		block.position = Vector3(rect.position.x + rect.size.x * 0.5, obstacle_height * 0.5, rect.position.y + rect.size.y * 0.5)
 		add_child(block)
+		obstacle_meshes.append(block)
 		var block_body := StaticBody3D.new()
 		var block_shape := CollisionShape3D.new()
 		var block_box := BoxShape3D.new()

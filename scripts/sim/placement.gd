@@ -12,6 +12,10 @@ static func check(tree: SceneTree, def: BuildingDef, pos: Vector3) -> String:
 	var half := Vector2(def.size.x, def.size.z) * 0.5
 	var rect := Rect2(Vector2(pos.x, pos.z) - half, half * 2.0).grow(MARGIN)
 
+	var fog := tree.get_first_node_in_group(FogOfWar.GROUP) as FogOfWar
+	if fog != null and not fog.is_explored_at(pos):
+		return "Unexplored area"
+
 	var terrain := tree.get_first_node_in_group(Terrain.GROUP) as Terrain
 	if terrain != null:
 		var limit := terrain.map_size * 0.5

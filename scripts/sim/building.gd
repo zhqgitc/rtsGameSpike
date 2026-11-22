@@ -43,6 +43,7 @@ var _roof: MeshInstance3D
 var _body_material: StandardMaterial3D
 var _selection_marker: MeshInstance3D
 var _income_accumulator: Dictionary = {}
+var _remembered: bool = false
 
 
 func setup(building_def: BuildingDef) -> void:
@@ -72,6 +73,21 @@ func add_progress(amount: float) -> void:
 		completed.emit(self)
 	else:
 		_update_construction_visual()
+
+
+## Fog of war: an explored-but-unseen enemy building is shown dimmed, as last seen.
+func set_remembered(remembered: bool) -> void:
+	if _body == null or remembered == _remembered:
+		return
+	_remembered = remembered
+	var dim: StandardMaterial3D = null
+	if remembered:
+		dim = StandardMaterial3D.new()
+		dim.albedo_color = Color(0, 0, 0, 0.5)
+		dim.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		dim.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_body.material_overlay = dim
+	_roof.material_overlay = dim
 
 
 func progress_fraction() -> float:

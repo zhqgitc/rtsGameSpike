@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1")
+sight_range = 22.0
 id = &"collectivist_hq"
 display_name = "Central Committee Block"
 faction = &"collectivists"

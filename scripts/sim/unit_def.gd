@@ -26,6 +26,11 @@ enum Shape { BOX, CAPSULE }
 ## 0 = never retreats (Collectivist obedience).
 @export_range(0.0, 1.0) var retreat_health_fraction: float = 0.0
 
+@export_group("Senses")
+## How far this unit sees (reveals fog of war). Combat units should see at
+## least as far as they acquire targets.
+@export var sight_range: float = 14.0
+
 @export_group("Harvesting")
 ## 0 = cannot harvest.
 @export var carry_capacity: int = 0
