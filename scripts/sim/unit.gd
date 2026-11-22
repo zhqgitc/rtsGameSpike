@@ -19,6 +19,11 @@ const REPATH_INTERVAL := 0.3
 const LEASH_FACTOR := 1.6
 const RETREAT_DISTANCE := 24.0
 const FACE_TURN_RATE := 10.0
+## Avoidance priority of standing units (moving units use 1.0): lower priority
+## means stepping aside for others.
+const STANDING_PRIORITY := 0.5
+## Ignore pushes weaker than this so idle units don't jitter.
+const NUDGE_MIN_SPEED := 0.15
 
 static var _spawn_counter: int = 0
 
@@ -153,6 +158,10 @@ func _physics_process(delta: float) -> void:
 	if _dead:
 		return
 	_cooldown = maxf(0.0, _cooldown - delta)
+	# Units on the move take right of way; standing units step aside for them.
+	_agent.avoidance_priority = 1.0 if _path_active else STANDING_PRIORITY
+	if not _path_active:
+		_agent.velocity = Vector3.ZERO ## Keeps avoidance running so we can be nudged.
 	match state:
 		State.IDLE:
 			_tick_idle(delta)
@@ -273,9 +282,16 @@ func _drive_path() -> void:
 
 
 func _on_velocity_computed(safe_velocity: Vector3) -> void:
-	if not _path_active or _dead:
+	if _dead:
 		return
 	var delta := get_physics_process_delta_time()
+	if not _path_active:
+		# Standing still: only move if avoidance pushes us out of someone's way.
+		var push := Vector3(safe_velocity.x, 0.0, safe_velocity.z)
+		if push.length() > NUDGE_MIN_SPEED:
+			var nudged := NavigationServer3D.map_get_closest_point(_agent.get_navigation_map(), global_position + push * delta)
+			global_position = Vector3(nudged.x, 0.0, nudged.z)
+		return
 	var flat := Vector3(safe_velocity.x, 0.0, safe_velocity.z)
 	# Avoidance knows nothing about walls, so clamp the step back onto the navmesh.
 	var next := NavigationServer3D.map_get_closest_point(_agent.get_navigation_map(), global_position + flat * delta)

@@ -163,14 +163,24 @@ func _order_move(screen_pos: Vector2) -> void:
 			cam.project_ray_origin(screen_pos), cam.project_ray_normal(screen_pos))
 	if hit == null:
 		return
-	var deposit := _resource_node_at(hit)
+	command_point(hit)
+
+
+## Order the selected units to a ground point: gather from a deposit there,
+## help build a site there, or simply move. Used by right clicks on the world
+## and on the minimap.
+func command_point(ground_point: Vector3) -> void:
+	_prune_selection()
+	if selected.is_empty():
+		return
+	var deposit := _resource_node_at(ground_point)
 	if deposit != null:
 		Orders.harvest_group(selected, deposit)
 		return
-	var site := _unfinished_building_at(hit)
+	var site := _unfinished_building_at(ground_point)
 	if site != null and Orders.build_group(selected, site) > 0:
 		return
-	Orders.move_group(selected, hit)
+	Orders.move_group(selected, ground_point)
 
 
 ## An unfinished building whose footprint contains a ground point, if any.
