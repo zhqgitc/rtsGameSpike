@@ -128,9 +128,9 @@ func queued_pop() -> int:
 	return total
 
 
-## Queue a unit (or a Plan batch). Pays up front. Returns an empty string on
-## success, otherwise a short reason why it was refused.
-func try_enqueue(unit_def: UnitDef, as_plan: bool) -> String:
+## Why a unit (or Plan batch) cannot be queued right now, or an empty string
+## if it can. Used for the command card's greyed-out state and tooltips.
+func block_reason(unit_def: UnitDef, as_plan: bool) -> String:
 	if not complete:
 		return "Still under construction"
 	if not def.trains.has(unit_def):
@@ -147,11 +147,18 @@ func try_enqueue(unit_def: UnitDef, as_plan: bool) -> String:
 	var count := def.plan_batch_size if as_plan else 1
 	if unit_def.pop_cost > 0 and economy.pop_used(def.faction) + unit_def.pop_cost * count > economy.pop_cap(def.faction):
 		return "Not enough Manpower: build more housing"
-	var costs := entry_costs(unit_def, as_plan)
-	var shortfall := economy.shortfall(def.faction, costs)
-	if not shortfall.is_empty():
-		return shortfall
-	economy.spend(def.faction, costs)
+	return economy.shortfall(def.faction, entry_costs(unit_def, as_plan))
+
+
+## Queue a unit (or a Plan batch). Pays up front. Returns an empty string on
+## success, otherwise a short reason why it was refused.
+func try_enqueue(unit_def: UnitDef, as_plan: bool) -> String:
+	var reason := block_reason(unit_def, as_plan)
+	if not reason.is_empty():
+		return reason
+	var economy := get_tree().get_first_node_in_group(Economy.GROUP) as Economy
+	var count := def.plan_batch_size if as_plan else 1
+	economy.spend(def.faction, entry_costs(unit_def, as_plan))
 	var entry := QueueEntry.new()
 	entry.unit_def = unit_def
 	entry.count = count
