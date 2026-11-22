@@ -17,6 +17,7 @@ costs = {
 }
 build_time = 35.0
 trains = Array[Resource]([ExtResource("3"), ExtResource("4")])
-size = Vector3(4.5, 2.8, 4.5)
+visual = &"militia_hall"
+size = Vector3(4.5, 4.0, 4.5)
 color = Color(0.45, 0.5, 0.4, 1)
 accent_color = Color(0.95, 0.75, 0.1, 1)
