@@ -2,8 +2,10 @@ class_name Placement
 extends RefCounted
 ## Rules for where a building may be placed.
 
-## Free space kept around buildings so units can walk between them.
-const MARGIN := 1.0
+## Free space kept around buildings so units can walk between them. A unit needs
+## about 2 m of corridor once the navigation mesh is shrunk by its agent
+## radius, and anything tighter can wall a building (and its builder) in.
+const MARGIN := 2.5
 
 
 ## Returns an empty string if the building may be placed centred at `pos`,

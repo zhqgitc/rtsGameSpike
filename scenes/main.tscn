@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/world/fog_presenter.gd" id="13"]
 [ext_resource type="Script" path="res://scripts/sim/match_rules.gd" id="14"]
 [ext_resource type="Script" path="res://scripts/ui/hud/end_screen.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/ai/ai_controller.gd" id="16"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 
@@ -43,6 +44,9 @@ script = ExtResource("2")
 
 [node name="MatchRules" type="Node" parent="."]
 script = ExtResource("14")
+
+[node name="AIController" type="Node" parent="."]
+script = ExtResource("16")
 
 [node name="Fog" type="Node" parent="."]
 script = ExtResource("12")

@@ -117,6 +117,27 @@ func stop() -> void:
 	_go_idle()
 
 
+## What standing orders the unit is carrying out: &"harvest", &"build" or
+## &"" for none.
+func job_kind() -> StringName:
+	if _job is HarvestJob:
+		return &"harvest"
+	if _job is BuildJob:
+		return &"build"
+	return &""
+
+
+## The building site this unit is working on, if any.
+func build_site() -> Building:
+	var build := _job as BuildJob
+	return build.site_node() if build != null else null
+
+
+## Standing still with nothing to do (the AI hands out work to these).
+func is_free() -> bool:
+	return state == State.IDLE and _job == null and not _dead
+
+
 ## Resources currently carried by a harvesting unit.
 func carried() -> int:
 	var harvest := _job as HarvestJob

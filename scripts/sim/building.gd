@@ -171,6 +171,11 @@ func queued_pop() -> int:
 	return total
 
 
+## Whether the building a unit requires (education) is finished.
+func prerequisite_met(unit_def: UnitDef) -> bool:
+	return unit_def.requires == null or _has_finished_building(unit_def.requires)
+
+
 ## Why a unit (or Plan batch) cannot be queued right now, or an empty string
 ## if it can. Used for the command card's greyed-out state and tooltips.
 func block_reason(unit_def: UnitDef, as_plan: bool) -> String:

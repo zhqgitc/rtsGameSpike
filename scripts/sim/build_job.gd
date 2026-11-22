@@ -12,6 +12,11 @@ func _init(unit: Unit, site: Building) -> void:
 	_site = site
 
 
+## The site this job is building.
+func site_node() -> Building:
+	return _site
+
+
 func tick(delta: float) -> void:
 	if _site == null or not is_instance_valid(_site) or _site.complete:
 		_unit.job_stop()
