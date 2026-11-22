@@ -53,11 +53,7 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		var index: int = event.keycode - KEY_1
-		if index >= 0 and index < 9:
-			if _start(index):
-				get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_ESCAPE and _def != null:
+		if event.keycode == KEY_ESCAPE and _def != null:
 			_cancel()
 			get_viewport().set_input_as_handled()
 		return
@@ -77,12 +73,13 @@ func _on_right_click(_screen_position: Vector2) -> void:
 		_cancel()
 
 
-func _start(index: int) -> bool:
+## Start placing a building. Needs a selected worker that can build it.
+func begin_placement(building_def: BuildingDef) -> bool:
 	var builder := _first_builder()
-	if builder == null or index >= builder.def.builds.size():
+	if builder == null or not builder.def.builds.has(building_def):
 		return false
 	_cancel()
-	_def = builder.def.builds[index]
+	_def = building_def
 	var box := BoxMesh.new()
 	box.size = _def.size
 	_ghost_material = StandardMaterial3D.new()
