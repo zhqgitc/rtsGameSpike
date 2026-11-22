@@ -37,3 +37,8 @@ RTS game spike (C&C / StarCraft / Warcraft style). See `PLAN.md` for scope and m
 - Verify changes by running the project headless (and by the owner playtesting) before calling a milestone done.
 - Keep `PLAN.md` open items current as work completes.
 - Orchestrator MCP is not used for now; revisit when cheap-model tasks are worthwhile.
+
+## Visual direction
+- Gritty and desaturated: overcast haze, low weak sun, dark scorched ground, muted colours. Faction colours stay strong accents against it.
+- All art is procedural (built in code from descriptions, no downloaded assets). The world mood is tuned through the constants at the top of `scripts/world/atmosphere.gd`; the ground look lives in `assets/shaders/terrain.gdshader`.
+- Decorative props are chunked (`scripts/world/props.gd`) so the fog of war can hide unexplored patches.

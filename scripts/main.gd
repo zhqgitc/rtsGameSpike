@@ -29,6 +29,7 @@ func _ready() -> void:
 	_setup_libertarians()
 	# Buildings and deposits are new obstacles: bake them into the navmesh.
 	_terrain.rebake()
+	_scatter_props()
 
 
 func _setup_collectivists() -> void:
@@ -63,6 +64,22 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	unit.add_child(bar)
 	bar.attach(unit, unit.def.size.y + 0.6)
 	($FogPresenter as FogPresenter).apply_to_unit(unit)
+
+
+## Decorative debris goes everywhere except around bases, deposits and walls.
+func _scatter_props() -> void:
+	var clear: Array[Rect2] = []
+	for node in _buildings.get_children():
+		var building := node as Building
+		if building != null:
+			clear.append(building.footprint().grow(8.0 if building.def.is_hq else 3.0))
+	for node in _deposits.get_children():
+		var deposit := node as ResourceNode
+		if deposit != null:
+			clear.append(Rect2(Vector2(deposit.position.x, deposit.position.z) - Vector2.ONE * 3.5, Vector2.ONE * 7.0))
+	for obstacle in _terrain.obstacles:
+		clear.append(obstacle.grow(2.0))
+	($Props as Props).scatter(_terrain.map_size, clear)
 
 
 ## Start the view on the chosen faction's HQ.

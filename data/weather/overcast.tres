@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeatherPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/weather_preset.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"overcast"
+display_name = "Overcast"
+sky_top = Color(0.24, 0.26, 0.29, 1)
+sky_horizon = Color(0.50, 0.47, 0.43, 1)
+ground_bottom = Color(0.24, 0.22, 0.20, 1)
+fog_color = Color(0.47, 0.44, 0.40, 1)
+fog_density = 0.0042
+sun_color = Color(1, 0.88, 0.74, 1)
+sun_energy = 1.25
+sun_rotation = Vector3(-36, -32, 0)
+shadow_blur = 1.4
+ambient_energy = 0.7
+saturation = 0.68
+contrast = 1.1
+vignette = 0.5
