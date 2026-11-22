@@ -15,6 +15,6 @@ drop_off_resources = Array[StringName]([&"materials"])
 pop_provided = 24
 trains = Array[Resource]([ExtResource("3")])
 visual = &"committee_block"
-size = Vector3(9, 10.7, 9)
+size = Vector3(9, 17.5, 9)
 color = Color(0.5, 0.5, 0.52, 1)
 accent_color = Color(0.72, 0.1, 0.1, 1)
