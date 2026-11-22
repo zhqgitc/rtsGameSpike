@@ -1,11 +1,14 @@
 class_name Building
-extends Node3D
+extends Damageable
 ## A structure. Starts finished unless begin_construction() is called, after
 ## which workers add progress until it completes. Solid obstacle on the
 ## navmesh; may be a drop-off, grant population cap, produce income or train
 ## units through a queue.
 
 signal completed(building: Building)
+## Emitted at the end of setup(), once the definition is known and the visuals
+## exist (nodes that decorate buildings, such as health bars, hook in here).
+signal configured(building: Building)
 ## A unit finished training and should appear at `spawn_position`.
 signal unit_produced(unit_def: UnitDef, spawn_position: Vector3)
 
@@ -48,11 +51,35 @@ var _remembered: bool = false
 
 func setup(building_def: BuildingDef) -> void:
 	def = building_def
+	health = def.max_health
 	name = "%s_%d" % [def.id, get_instance_id()]
 	add_to_group(GROUP)
 	_build_visuals()
 	_build_collider()
 	_build_selection_marker()
+	configured.emit(self)
+
+
+func get_faction() -> StringName:
+	return def.faction
+
+
+func max_health() -> int:
+	return def.max_health
+
+
+## Half the footprint: attackers reach the wall, not the middle.
+func hit_radius() -> float:
+	return maxf(def.size.x, def.size.z) * 0.5
+
+
+func aim_point() -> Vector3:
+	return global_position + Vector3.UP * def.size.y * 0.5
+
+
+func _on_death() -> void:
+	remove_from_group(GROUP)
+	selected = false
 
 
 ## Turn this building into a construction site (call right after setup).

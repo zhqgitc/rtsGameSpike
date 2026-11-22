@@ -1,13 +1,10 @@
 class_name Unit
-extends Node3D
+extends Damageable
 ## A unit in the world: health, move/attack orders, automatic engagement and
 ## retreat, pathing over the navigation mesh (with avoidance), plus placeholder
 ## visuals. All behaviour runs in _physics_process (the fixed simulation tick).
 
-signal health_changed(current: int, maximum: int)
-signal died(unit: Unit)
-
-enum State { IDLE, MOVING, ATTACKING, RETREATING }
+enum State { IDLE, MOVING, ATTACKING, RETREATING, ATTACK_MOVING }
 
 const GROUP := &"units"
 ## A unit that barely moves for this long while travelling gives up.
@@ -28,7 +25,6 @@ const NUDGE_MIN_SPEED := 0.15
 static var _spawn_counter: int = 0
 
 var def: UnitDef
-var health: int = 0
 var state: State = State.IDLE
 var selected: bool = false:
 	set(value):
@@ -38,10 +34,11 @@ var selected: bool = false:
 
 var _agent: NavigationAgent3D
 var _selection_ring: MeshInstance3D
-var _target: Unit
+var _target: Damageable
 var _target_ordered: bool = false ## Player-ordered targets are never dropped automatically.
+var _attack_moving: bool = false ## On an attack-move: resume travelling after each fight.
+var _attack_move_dest: Vector3 = Vector3.ZERO
 var _path_active: bool = false
-var _dead: bool = false
 var _cooldown: float = 0.0
 var _scan_timer: float = 0.0
 var _repath_timer: float = 0.0
@@ -68,14 +65,31 @@ func setup(unit_def: UnitDef) -> void:
 func issue_move(target: Vector3) -> void:
 	_job = null
 	_target = null
+	_attack_moving = false
 	_begin_travel(target, State.MOVING)
 
 
-## Attack a specific unit, chasing it as needed. Stays on it until it dies.
-func issue_attack(enemy: Unit) -> void:
+## Walk to a point but fight anything met on the way (units first, then
+## buildings), then carry on. Units that cannot attack just move.
+func issue_attack_move(target: Vector3) -> void:
+	if not def.can_attack():
+		issue_move(target)
+		return
+	_job = null
+	_target = null
+	_attack_moving = true
+	_attack_move_dest = target
+	_scan_timer = 0.0
+	_begin_travel(target, State.ATTACK_MOVING)
+
+
+## Attack a specific unit or building, chasing it as needed. Stays on it until
+## it is destroyed.
+func issue_attack(enemy: Damageable) -> void:
 	if not def.can_attack() or enemy == null or enemy == self or enemy._dead:
 		return
 	_job = null
+	_attack_moving = false
 	_begin_attack(enemy, true)
 
 
@@ -99,6 +113,7 @@ func issue_build(site: Building) -> void:
 
 func stop() -> void:
 	_job = null
+	_attack_moving = false
 	_go_idle()
 
 
@@ -126,8 +141,20 @@ func is_moving() -> bool:
 	return state == State.MOVING
 
 
-func is_dead() -> bool:
-	return _dead
+func get_faction() -> StringName:
+	return def.faction
+
+
+func max_health() -> int:
+	return def.max_health
+
+
+func hit_radius() -> float:
+	return def.size.x * 0.5
+
+
+func aim_point() -> Vector3:
+	return global_position + Vector3.UP * 0.9
 
 
 ## True once health has fallen below the retreat threshold (never for units
@@ -136,16 +163,10 @@ func is_demoralized() -> bool:
 	return def.retreat_health_fraction > 0.0 and health < def.max_health * def.retreat_health_fraction
 
 
-func take_damage(amount: int, attacker: Unit) -> void:
-	if _dead:
-		return
-	health = maxi(0, health - amount)
-	health_changed.emit(health, def.max_health)
-	if health <= 0:
-		_die()
-		return
-	# Hit while idle: hit back, or flee if too hurt to fight.
-	if def.can_attack() and state == State.IDLE and attacker != null and not attacker.is_dead():
+## Hit while idle or on an attack-move: hit back, or flee if too hurt to fight.
+func _on_damaged(attacker: Damageable) -> void:
+	var can_respond := state == State.IDLE or state == State.ATTACK_MOVING
+	if def.can_attack() and can_respond and attacker != null and not attacker.is_dead():
 		if is_demoralized():
 			_begin_retreat(attacker)
 		else:
@@ -165,8 +186,8 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.IDLE:
 			_tick_idle(delta)
-		State.MOVING, State.RETREATING:
-			_tick_travel()
+		State.MOVING, State.RETREATING, State.ATTACK_MOVING:
+			_tick_travel(delta)
 		State.ATTACKING:
 			_tick_attack(delta)
 	if _job != null and not _dead:
@@ -189,28 +210,51 @@ func _tick_idle(delta: float) -> void:
 		_begin_attack(enemy, false)
 
 
-func _tick_travel() -> void:
+func _tick_travel(delta: float) -> void:
+	if state == State.ATTACK_MOVING:
+		_scan_timer -= delta
+		if _scan_timer <= 0.0:
+			_scan_timer = SCAN_INTERVAL
+			var enemy := _nearest_enemy(def.acquire_range, true)
+			if enemy != null:
+				if is_demoralized():
+					_begin_retreat(enemy)
+				else:
+					_begin_attack(enemy, false)
+				return
 	if _agent.is_navigation_finished():
 		_halt()
 		state = State.IDLE
+		_attack_moving = false
 		_scan_timer = 0.0
 		return
 	_drive_path()
 
 
+## A fight is over (target gone or dropped): carry on with the attack-move if
+## there is one, otherwise stand still.
+func _end_engagement() -> void:
+	if _attack_moving:
+		_target = null
+		_begin_travel(_attack_move_dest, State.ATTACK_MOVING)
+	else:
+		_go_idle()
+
+
 func _tick_attack(delta: float) -> void:
 	if _target == null or not is_instance_valid(_target) or _target.is_dead():
-		_go_idle()
+		_end_engagement()
 		return
 	var to_target := _target.global_position - global_position
 	to_target.y = 0.0
-	var dist := to_target.length()
+	# Distance to the target's surface, so big buildings can be reached.
+	var dist := to_target.length() - _target.hit_radius()
 	if not _target_ordered:
 		if is_demoralized():
 			_begin_retreat(_target)
 			return
 		if dist > def.acquire_range * LEASH_FACTOR:
-			_go_idle()
+			_end_engagement()
 			return
 	if dist > def.attack_range:
 		_repath_timer -= delta
@@ -236,7 +280,7 @@ func _fire() -> void:
 		_target.take_damage(def.attack_damage, self)
 
 
-func _begin_attack(enemy: Unit, ordered: bool) -> void:
+func _begin_attack(enemy: Damageable, ordered: bool) -> void:
 	_target = enemy
 	_target_ordered = ordered
 	_repath_timer = 0.0
@@ -244,11 +288,12 @@ func _begin_attack(enemy: Unit, ordered: bool) -> void:
 	state = State.ATTACKING
 
 
-func _begin_retreat(from: Unit) -> void:
+func _begin_retreat(from: Damageable) -> void:
 	var away := global_position - from.global_position
 	away.y = 0.0
 	away = away.normalized() if away.length() > 0.01 else Vector3.BACK
 	_target = null
+	_attack_moving = false
 	_begin_travel(global_position + away * RETREAT_DISTANCE, State.RETREATING)
 
 
@@ -298,7 +343,7 @@ func _on_velocity_computed(safe_velocity: Vector3) -> void:
 	global_position = Vector3(next.x, 0.0, next.z)
 	if flat.length() > 0.1:
 		_face(flat, delta)
-	if state == State.MOVING or state == State.RETREATING:
+	if state == State.MOVING or state == State.RETREATING or state == State.ATTACK_MOVING:
 		if flat.length() < def.move_speed * STALL_SPEED_FRACTION:
 			_stall_time += delta
 			if _stall_time > STALL_SECONDS:
@@ -314,8 +359,10 @@ func _face(direction: Vector3, delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, delta * FACE_TURN_RATE))
 
 
-func _nearest_enemy(max_range: float) -> Unit:
-	var best: Unit = null
+## The closest enemy within range. Units are preferred; enemy buildings are
+## only considered when `include_buildings` is set (attack-moves).
+func _nearest_enemy(max_range: float, include_buildings: bool = false) -> Damageable:
+	var best: Damageable = null
 	var best_dist := max_range * max_range
 	for node in get_tree().get_nodes_in_group(GROUP):
 		var other := node as Unit
@@ -325,16 +372,23 @@ func _nearest_enemy(max_range: float) -> Unit:
 		if d < best_dist:
 			best_dist = d
 			best = other
+	if best != null or not include_buildings:
+		return best
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building == null or building._dead or building.def.faction == def.faction:
+			continue
+		var gap := maxf(0.0, global_position.distance_to(building.global_position) - building.hit_radius())
+		if gap * gap < best_dist:
+			best_dist = gap * gap
+			best = building
 	return best
 
 
-func _die() -> void:
-	_dead = true
+func _on_death() -> void:
 	_path_active = false
 	remove_from_group(GROUP)
 	selected = false
-	died.emit(self)
-	queue_free()
 
 
 # --- Placeholder visuals ----------------------------------------------------

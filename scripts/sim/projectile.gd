@@ -5,16 +5,15 @@ extends Node3D
 
 const MAX_LIFETIME := 4.0
 const HIT_DISTANCE := 0.6
-const AIM_HEIGHT := 0.9
 
-var _target: Unit
-var _attacker: Unit
+var _target: Damageable
+var _attacker: Damageable
 var _damage: int = 0
 var _speed: float = 20.0
 var _age: float = 0.0
 
 
-func launch(from: Vector3, target: Unit, damage: int, speed: float, attacker: Unit) -> void:
+func launch(from: Vector3, target: Damageable, damage: int, speed: float, attacker: Damageable) -> void:
 	position = from
 	_target = target
 	_damage = damage
@@ -28,10 +27,10 @@ func _physics_process(delta: float) -> void:
 	if _age > MAX_LIFETIME or not is_instance_valid(_target) or _target.is_dead():
 		queue_free()
 		return
-	var aim := _target.global_position + Vector3.UP * AIM_HEIGHT
-	var to_target := aim - global_position
+	var to_target := _target.aim_point() - global_position
 	var step := _speed * delta
-	if to_target.length() <= maxf(step, HIT_DISTANCE):
+	# Big targets (buildings) are hit at their surface, not at their centre.
+	if to_target.length() <= maxf(step, HIT_DISTANCE + _target.hit_radius() * 0.5):
 		_target.take_damage(_damage, _attacker if is_instance_valid(_attacker) else null)
 		queue_free()
 		return

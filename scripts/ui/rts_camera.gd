@@ -12,7 +12,7 @@ extends Node3D
 @export var bounds: Vector2 = Vector2(60, 60) ## Max |x| and |z| of the focus point.
 
 ## A right click that did not move; orders and cancels hang off this.
-signal right_clicked(screen_position: Vector2)
+signal right_clicked(screen_position: Vector2, ctrl_held: bool)
 
 const DRAG_THRESHOLD := 6.0
 
@@ -69,7 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif _rmb_down:
 				_rmb_down = false
 				if not _rmb_dragging:
-					right_clicked.emit(event.position)
+					right_clicked.emit(event.position, event.ctrl_pressed)
 				_rmb_dragging = false
 			get_viewport().set_input_as_handled()
 		elif event.pressed:
