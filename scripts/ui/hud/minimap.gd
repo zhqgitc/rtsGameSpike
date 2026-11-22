@@ -45,7 +45,7 @@ func _gui_input(event: InputEvent) -> void:
 			if event.pressed:
 				_rig.focus_on(_to_world(event.position))
 		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-			_selection.command_point(_to_world(event.position))
+			_selection.command_point(_to_world(event.position), event.ctrl_pressed)
 		accept_event()
 	elif event is InputEventMouseMotion and _dragging:
 		_rig.focus_on(_to_world(event.position))

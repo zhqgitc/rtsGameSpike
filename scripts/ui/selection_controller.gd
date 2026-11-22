@@ -147,7 +147,7 @@ func _apply_selection(picked: Array[Unit], additive: bool) -> void:
 			unit.selected = true
 
 
-func _order_move(screen_pos: Vector2) -> void:
+func _order_move(screen_pos: Vector2, ctrl_held: bool = false) -> void:
 	# While placing a building, right click only cancels the placement.
 	var placer := get_node_or_null("../BuildPlacer") as BuildPlacer
 	if placer != null and placer.is_placing():
@@ -155,25 +155,51 @@ func _order_move(screen_pos: Vector2) -> void:
 	_prune_selection()
 	if selected.is_empty():
 		return
-	# Right-click on an enemy attacks it; anywhere else moves.
-	var clicked := _unit_at_point(screen_pos, true)
-	if clicked != null and _selection_has_enemy_of(clicked):
-		Orders.attack_group(selected, clicked)
-		return
+	# Ctrl+right click attack-moves. Otherwise right-click on an enemy unit or
+	# building attacks it; anywhere else moves.
+	if not ctrl_held:
+		var clicked: Damageable = _unit_at_point(screen_pos, true)
+		if clicked == null:
+			clicked = _enemy_building_at_point(screen_pos)
+		if clicked != null and _selection_has_enemy_of(clicked):
+			Orders.attack_group(selected, clicked)
+			return
 	var cam := get_viewport().get_camera_3d()
 	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(
 			cam.project_ray_origin(screen_pos), cam.project_ray_normal(screen_pos))
 	if hit == null:
 		return
-	command_point(hit)
+	command_point(hit, ctrl_held)
+
+
+## The visible enemy building under a screen point, found like our own.
+func _enemy_building_at_point(point: Vector2) -> Building:
+	var cam := get_viewport().get_camera_3d()
+	var origin := cam.project_ray_origin(point)
+	var direction := cam.project_ray_normal(point)
+	var best: Building = null
+	var best_dist := INF
+	for node in get_tree().get_nodes_in_group(Building.GROUP):
+		var building := node as Building
+		if building == null or _is_mine(building.def.faction) or not building.visible:
+			continue
+		var dist := building.ray_distance(origin, direction)
+		if dist >= 0.0 and dist < best_dist:
+			best_dist = dist
+			best = building
+	return best
 
 
 ## Order the selected units to a ground point: gather from a deposit there,
-## help build a site there, or simply move. Used by right clicks on the world
+## help build a site there, or simply move. With `attack_move` they fight
+## whatever they meet on the way instead. Used by right clicks on the world
 ## and on the minimap.
-func command_point(ground_point: Vector3) -> void:
+func command_point(ground_point: Vector3, attack_move: bool = false) -> void:
 	_prune_selection()
 	if selected.is_empty():
+		return
+	if attack_move:
+		Orders.move_group(selected, ground_point, true)
 		return
 	var deposit := _resource_node_at(ground_point)
 	if deposit != null:
@@ -208,9 +234,9 @@ func _resource_node_at(ground_point: Vector3) -> ResourceNode:
 	return null
 
 
-func _selection_has_enemy_of(target: Unit) -> bool:
+func _selection_has_enemy_of(target: Damageable) -> bool:
 	for unit in selected:
-		if unit.def.faction != target.def.faction:
+		if unit.def.faction != target.get_faction():
 			return true
 	return false
 

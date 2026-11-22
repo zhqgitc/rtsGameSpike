@@ -202,16 +202,19 @@ func _refresh_selection() -> void:
 func _show_building(building: Building) -> void:
 	_selection_panel.visible = true
 	_title.text = building.def.display_name
-	_hp_bar.visible = false
+	_hp_bar.visible = true
+	_hp_bar.max_value = building.def.max_health
+	_hp_bar.value = building.health
 	var produces := building.complete and not building.def.trains.is_empty()
 	_queue_row.visible = produces
+	var health_text := "HP %d / %d" % [building.health, building.def.max_health]
 	if not building.complete:
-		_detail.text = "Under construction: %d%%" % roundi(building.progress_fraction() * 100.0)
+		_detail.text = "%s   Under construction: %d%%" % [health_text, roundi(building.progress_fraction() * 100.0)]
 	elif produces:
-		_detail.text = "Queue %d / %d" % [building.queue.size(), building.def.queue_slots]
+		_detail.text = "%s   Queue %d / %d" % [health_text, building.queue.size(), building.def.queue_slots]
 		_fill_queue_slots(building)
 	else:
-		_detail.text = ""
+		_detail.text = health_text
 
 
 func _fill_queue_slots(building: Building) -> void:
@@ -265,6 +268,8 @@ func _state_name(state: Unit.State) -> String:
 			return "Moving"
 		Unit.State.ATTACKING:
 			return "Attacking"
+		Unit.State.ATTACK_MOVING:
+			return "Attack-moving"
 		Unit.State.RETREATING:
 			return "Retreating"
 		_:

@@ -6,7 +6,8 @@ extends RefCounted
 
 ## Send a group to a point. Units spread over a formation around the target so
 ## they don't all fight over the same spot. Spacing comes from the unit data.
-static func move_group(units: Array[Unit], target: Vector3) -> void:
+## With `attack_move`, units fight whatever they meet on the way.
+static func move_group(units: Array[Unit], target: Vector3, attack_move: bool = false) -> void:
 	if units.is_empty():
 		return
 	var centroid := Vector3.ZERO
@@ -30,7 +31,10 @@ static func move_group(units: Array[Unit], target: Vector3) -> void:
 			if d < best_dist:
 				best_dist = d
 				best = i
-		remaining[best].issue_move(slot)
+		if attack_move:
+			remaining[best].issue_attack_move(slot)
+		else:
+			remaining[best].issue_move(slot)
 		remaining.remove_at(best)
 
 
@@ -58,9 +62,9 @@ static func build_group(units: Array[Unit], site: Building) -> int:
 
 ## Order every enemy of the target in the group to attack it. Units of the
 ## target's own faction in the group are left alone.
-static func attack_group(units: Array[Unit], target: Unit) -> void:
+static func attack_group(units: Array[Unit], target: Damageable) -> void:
 	for unit in units:
-		if unit.def.faction != target.def.faction:
+		if unit.def.faction != target.get_faction():
 			unit.issue_attack(target)
 
 

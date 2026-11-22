@@ -68,7 +68,7 @@ func is_placing() -> bool:
 	return _def != null
 
 
-func _on_right_click(_screen_position: Vector2) -> void:
+func _on_right_click(_screen_position: Vector2, _ctrl_held: bool) -> void:
 	if _def != null:
 		_cancel()
 

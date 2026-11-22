@@ -61,7 +61,7 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	unit.position = pos
 	var bar := HealthBar.new()
 	unit.add_child(bar)
-	bar.attach(unit)
+	bar.attach(unit, unit.def.size.y + 0.6)
 	($FogPresenter as FogPresenter).apply_to_unit(unit)
 
 
@@ -76,8 +76,24 @@ func _on_faction_chosen(faction: StringName) -> void:
 
 func _on_building_added(node: Node) -> void:
 	var building := node as Building
-	if building != null:
-		building.unit_produced.connect(_spawn_unit)
+	if building == null:
+		return
+	building.unit_produced.connect(_spawn_unit)
+	building.configured.connect(_attach_building_bar)
+	building.died.connect(_on_building_died)
+
+
+func _attach_building_bar(building: Building) -> void:
+	var bar := HealthBar.new()
+	building.add_child(bar)
+	bar.attach(building, building.def.size.y + 1.0, maxf(building.def.size.x, 2.5))
+
+
+func _on_building_died(target: Damageable) -> void:
+	($MatchRules as MatchRules).building_destroyed(target as Building)
+	# The wreck is freed at the end of the frame; bake once it is gone.
+	await get_tree().process_frame
+	_terrain.rebake()
 
 
 func _spawn_building(def: BuildingDef, pos: Vector3) -> void:
