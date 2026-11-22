@@ -14,9 +14,13 @@ extends Node3D
 ## A right click that did not move; orders and cancels hang off this.
 signal right_clicked(screen_position: Vector2, ctrl_held: bool)
 
+const GROUP := &"rts_camera"
 const DRAG_THRESHOLD := 6.0
+const MAX_SHAKE := 1.2
+const SHAKE_DECAY := 1.6
 
 var _zoom: float = 40.0
+var _shake: float = 0.0
 var _rmb_down: bool = false
 var _rmb_dragging: bool = false
 var _rmb_start: Vector2 = Vector2.ZERO
@@ -26,10 +30,24 @@ var _rmb_last: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_apply_zoom()
 
 
+## Rattle the view (explosions, collapsing buildings). Strength is in metres of
+## camera offset; it fades out by itself.
+func shake(strength: float) -> void:
+	_shake = maxf(_shake, minf(strength, MAX_SHAKE))
+
+
 func _process(delta: float) -> void:
+	if _shake > 0.0:
+		_shake = maxf(0.0, _shake - delta * SHAKE_DECAY)
+		_camera.h_offset = randf_range(-1.0, 1.0) * _shake
+		_camera.v_offset = randf_range(-1.0, 1.0) * _shake
+	elif _camera.h_offset != 0.0 or _camera.v_offset != 0.0:
+		_camera.h_offset = 0.0
+		_camera.v_offset = 0.0
 	var dir := _read_pan_direction()
 	if dir != Vector2.ZERO:
 		var step := pan_speed * _zoom * delta

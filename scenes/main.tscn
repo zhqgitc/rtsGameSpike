@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain.gd" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/ai/ai_controller.gd" id="16"]
 [ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="17"]
 [ext_resource type="Script" path="res://scripts/world/props.gd" id="18"]
+[ext_resource type="Script" path="res://scripts/world/effects.gd" id="19"]
 
 
 [node name="Main" type="Node3D"]
@@ -35,6 +36,9 @@ script = ExtResource("17")
 
 [node name="Props" type="Node3D" parent="."]
 script = ExtResource("18")
+
+[node name="Effects" type="Node3D" parent="."]
+script = ExtResource("19")
 
 [node name="Terrain" type="NavigationRegion3D" parent="."]
 script = ExtResource("2")

@@ -10,12 +10,6 @@ const CHUNK_SIZE := 16.0
 const CLEAR_FADE := 14.0
 const ROCK_COUNT := 650
 const SLAB_COUNT := 140
-const ICOSAHEDRON_FACES: Array[Array] = [
-	[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
-	[1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
-	[3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
-	[4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1],
-]
 
 ## One entry per chunk, aligned: its ground rectangle and the node holding its props.
 var chunk_rects: Array[Rect2] = []
@@ -48,7 +42,7 @@ func scatter(map_size: Vector2, exclusions: Array[Rect2]) -> void:
 	_collect(ROCK_COUNT, map_size, origin, cols, rows, clusters, exclusions, rocks, false)
 	_collect(SLAB_COUNT, map_size, origin, cols, rows, clusters, exclusions, slabs, true)
 
-	var rock_mesh := _make_rock_mesh()
+	var rock_mesh := RockMesh.create(99)
 	var slab_mesh := BoxMesh.new()
 	slab_mesh.size = Vector3.ONE
 	var rock_material := _make_material(Color(0.2, 0.19, 0.175))
@@ -130,26 +124,3 @@ func _add_multimesh(root: Node3D, mesh: Mesh, material: Material, items: Array) 
 	root.add_child(instance)
 
 
-## A rough, low-poly rock: a squashed icosahedron with jittered corners and
-## flat-shaded faces.
-func _make_rock_mesh() -> ArrayMesh:
-	var t := (1.0 + sqrt(5.0)) * 0.5
-	var corners: Array[Vector3] = [
-		Vector3(-1, t, 0), Vector3(1, t, 0), Vector3(-1, -t, 0), Vector3(1, -t, 0),
-		Vector3(0, -1, t), Vector3(0, 1, t), Vector3(0, -1, -t), Vector3(0, 1, -t),
-		Vector3(t, 0, -1), Vector3(t, 0, 1), Vector3(-t, 0, -1), Vector3(-t, 0, 1),
-	]
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 99
-	for i in corners.size():
-		corners[i] = corners[i].normalized() * rng.randf_range(0.72, 1.12)
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface.set_smooth_group(-1)
-	for face in ICOSAHEDRON_FACES:
-		# Reversed so the faces point outwards in Godot's winding order.
-		surface.add_vertex(corners[face[0]])
-		surface.add_vertex(corners[face[2]])
-		surface.add_vertex(corners[face[1]])
-	surface.generate_normals()
-	return surface.commit()

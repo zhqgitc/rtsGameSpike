@@ -163,6 +163,7 @@ func _order_move(screen_pos: Vector2, ctrl_held: bool = false) -> void:
 			clicked = _enemy_building_at_point(screen_pos)
 		if clicked != null and _selection_has_enemy_of(clicked):
 			Orders.attack_group(selected, clicked)
+			_mark(clicked.global_position, Color(1.0, 0.3, 0.25))
 			return
 	var cam := get_viewport().get_camera_3d()
 	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(
@@ -200,15 +201,26 @@ func command_point(ground_point: Vector3, attack_move: bool = false) -> void:
 		return
 	if attack_move:
 		Orders.move_group(selected, ground_point, true)
+		_mark(ground_point, Color(1.0, 0.6, 0.2))
 		return
 	var deposit := _resource_node_at(ground_point)
 	if deposit != null:
 		Orders.harvest_group(selected, deposit)
+		_mark(deposit.global_position, Color(0.95, 0.75, 0.2))
 		return
 	var site := _unfinished_building_at(ground_point)
 	if site != null and Orders.build_group(selected, site) > 0:
+		_mark(site.global_position, Color(0.4, 0.7, 1.0))
 		return
 	Orders.move_group(selected, ground_point)
+	_mark(ground_point, Color(0.4, 1.0, 0.4))
+
+
+## A fading ring where an order was given.
+func _mark(point: Vector3, color: Color) -> void:
+	var effects := Effects.find(get_tree())
+	if effects != null:
+		effects.order_marker(point, color)
 
 
 ## An unfinished building whose footprint contains a ground point, if any.

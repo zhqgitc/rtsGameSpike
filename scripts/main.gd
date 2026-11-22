@@ -64,6 +64,20 @@ func _spawn_unit(def: UnitDef, pos: Vector3) -> void:
 	unit.add_child(bar)
 	bar.attach(unit, unit.def.size.y + 0.6)
 	($FogPresenter as FogPresenter).apply_to_unit(unit)
+	unit.health_changed.connect(_on_unit_hurt.bind(unit))
+	unit.died.connect(_on_unit_died)
+
+
+func _on_unit_hurt(_current: int, _maximum: int, unit: Unit) -> void:
+	var effects := Effects.find(get_tree())
+	if effects != null and is_instance_valid(unit):
+		effects.hit_spark(unit.aim_point())
+
+
+func _on_unit_died(target: Damageable) -> void:
+	var effects := Effects.find(get_tree())
+	if effects != null:
+		effects.unit_death(target as Unit)
 
 
 ## Decorative debris goes everywhere except around bases, deposits and walls.
@@ -104,10 +118,17 @@ func _attach_building_bar(building: Building) -> void:
 	var bar := HealthBar.new()
 	building.add_child(bar)
 	bar.attach(building, building.def.size.y + 1.0, maxf(building.def.size.x, 2.5))
+	var wear := BuildingFX.new()
+	building.add_child(wear)
+	wear.attach(building)
 
 
 func _on_building_died(target: Damageable) -> void:
-	($MatchRules as MatchRules).building_destroyed(target as Building)
+	var building := target as Building
+	($MatchRules as MatchRules).building_destroyed(building)
+	var effects := Effects.find(get_tree())
+	if effects != null and building != null:
+		effects.building_collapse(building.global_position, Vector2(building.def.size.x, building.def.size.z), building.def.size.y)
 	# The wreck is freed at the end of the frame; bake once it is gone.
 	await get_tree().process_frame
 	_terrain.rebake()
